@@ -2,7 +2,7 @@
   "name": "rescue-app-webservice-master",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src\\app.js",
   "scripts": {
     "test": "test"
   },

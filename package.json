@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/mibrahim09/rescue-app-webservice/issues"
   },
-  "homepage": "https://github.com/mibrahim09/rescue-app-webservice#readme"
+  "homepage": "https://github.com/mibrahim09/rescue-app-webservice#readme",
+  "dependencies": {
+    "sequelize": "^6.3.5",
+    "tedious": "^9.2.3"
+  }
 }

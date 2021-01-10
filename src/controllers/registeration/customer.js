@@ -2,12 +2,15 @@ const configDB = require('../../config');
 const Joi = require('joi');
 
 function handleCustomerRegisteration(request, response) {
-    console.log(request);    
-
     var schema = validateUserRequest(request.body);
     const { error, value } = schema.validate(request.body);
-
-
+    if (error) {
+        response
+            .status(400)
+            .send(error);
+        return;
+    }
+    
     // VALID USER.
     // TODO: SEND VERIFICATION NUMBER AND ACCESSTOKEN.
 

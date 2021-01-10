@@ -31,5 +31,3 @@ module.exports = {
     sequelizeSession: sequelize,
     testConn: testConnection
 }
-
-testConnection();

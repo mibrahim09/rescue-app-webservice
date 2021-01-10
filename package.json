@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/mibrahim09/rescue-app-webservice#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "mysql2": "^2.2.5",
     "sequelize": "^6.3.5",
     "sequelize-msnodesqlv8": "^0.2.6-beta.8",

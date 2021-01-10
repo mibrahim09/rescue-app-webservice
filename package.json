@@ -1,0 +1,19 @@
+{
+  "name": "rescue-app-webservice-master",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mibrahim09/rescue-app-webservice.git"
+  },
+  "author": "Muhammad Ibrahim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mibrahim09/rescue-app-webservice/issues"
+  },
+  "homepage": "https://github.com/mibrahim09/rescue-app-webservice#readme"
+}

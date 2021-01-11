@@ -7,7 +7,7 @@ function handleCustomerRegisteration(request, response) {
     if (error) {
         response
             .status(400)
-            .send(error);
+            .send(error.details[0].message);
         return;
     }
     
@@ -25,7 +25,7 @@ function validateUserRequest(request) {
     const validationSchema = Joi.object({
         firstName: Joi.string().min(2).max(10).required(),
         lastName: Joi.string().min(2).max(10).required(),
-        phoneNumber: Joi.string().length(11).required()
+        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required()
     });
     return validationSchema;
 

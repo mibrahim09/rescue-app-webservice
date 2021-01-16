@@ -1,33 +1,17 @@
-const Sequelize = require('sequelize');
+const mongoose = require('mongoose');
+const debug = require('debug')('app:config');
 
-var sequelize = new Sequelize({
-    dialect: 'mssql',
-    dialectOptions: {
-        driver: 'SQL Server Native Client 11.0',
-        instanceName: 'MSSQLSERVER',
-        options: {
-            encrypt: false,
-            validateBulkLoadParameters: true
-        }
-        //   trustedConnection: true
-    },
-    username: 'root',
-    password: '123456',
-    host: 'localhost',
-    database: 'winchdb'
-});
+debug.enabled = true;
 
-async function testConnection() {
-    try {
-        await sequelize.authenticate();
-        console.log('Connection has been established successfully.');
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-    }
+const connectionString = 'mongodb://localhost/winchdb';
+
+function startConnection() {
+    mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }).
+        then(() => { debug('Connected to MongoDB.'); }).
+        catch(error => debug(error));
+
 }
 
-
 module.exports = {
-    sequelizeSession: sequelize,
-    testConn: testConnection
+    startConnection: startConnection
 }

@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const customerHandler = require('../controllers/registeration/customer');
-const winchDriverHandler = require('../controllers/registeration/winchUser');
+const customerHandler = require('../controllers/customer');
+const winchDriverHandler = require('../controllers/winchUser');
 
 // /api/registeration/customer
 router.post('/customer', (req, res) => {

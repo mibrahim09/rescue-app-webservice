@@ -1,47 +1,84 @@
 const configDB = require('../config');
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
+const { Driver, createWinchUser, validateWinchUser: validateWinchUser } = require('../models/winchDriver');
 
-function handleWinchDriverRegisteration(request, response) {
-    var schema = validateUserRequest(request.body);
-    const { error, value } = schema.validate(request.body);
-    if (error) {
-        response
-            .status(400)
-            .send(error.details[0].message);
-        return;
-    }
+
+async function handleWinchDriverRegisteration(request, response) {
+
+    const { error, value } = validateWinchUser(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+    let driver = await Driver.findOne({ phoneNumber: request.body.phoneNumber });
+    if (driver) return response.status(400).send({
+        "_id": user._id,
+        "firstName": user.firstName,
+        "lastName": user.lastName,
+        "phoneNumber": user.phoneNumber, // We should also send a token here.
+        "error": "Already exists."
+    }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     
     // VALID USER.
     // TODO: SEND VERIFICATION NUMBER AND ACCESSTOKEN.
+    await createWinchUser(request, response);
+}
 
-    response.send({
-        message: 'valid data'
+
+async function handleUpdateData(request, response) {
+
+    const { error, value } = validateUpdateDriver(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+
+    const { error2, value2 } = validateObjectId(request);
+    if (error2) return response
+        .status(400)
+        .send({ "error": error2.details[0].message });
+
+    let driver = await Customer.findOne({ _id: request.params.id });
+    if (!driver) return response.status(400).send({
+        "error": "User doesn't exist."
     });
 
+    try {
+        const result = await driver.updateOne({
+            firstName: request.body.firstName,
+            lastName: request.body.lastName,
+            winchState: request.body.lastName
+        });
+        response.status(200).send("OK");
+    }
+    catch (ex) {
+        response.status(400).send({ "error": ex.message });
+    }
 
 }
-function validateUserRequest(request) {
+
+function validateUpdateDriver(request) {
     // Validation
     const validationSchema = Joi.object({
-        firstName: Joi.string().min(2).max(10).required(),
-        lastName: Joi.string().min(2).max(10).required(),
-        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required(),
-        personalPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        
-        //personalPicture: Joi.binary().encoding('base64').max(5*1024*1024), // 5 MB
-
-        //driverLicensePicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchLicenseFrontPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchLicenseRearPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //driverCriminalRecordPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //driverDrugAnalysisPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchCheckReportPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        winchPlates: Joi.string().alphanum().min(4).max(7).required()   
+        firstName: Joi.string().min(5).max(20).required(),
+        lastName: Joi.string().min(5).max(20).required(),
+        //winchState:Joi.string().valid('Offline','Idle','Busy').required()
     });
-    return validationSchema;
+    return validationSchema.validate(request.body);
+
+}
+
+function validateObjectId(request) {
+    // Validation
+    const validationSchema = Joi.object({
+        id: Joi.objectId().required()
+    });
+    return validationSchema.validate(request.params);
 
 }
 
 module.exports = {
-    handleWinchDriverRegisteration: handleWinchDriverRegisteration
+    handleWinchDriverRegisteration: handleWinchDriverRegisteration,
+    handleUpdateData: handleUpdateData
 };

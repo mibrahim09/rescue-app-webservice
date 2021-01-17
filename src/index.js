@@ -1,7 +1,15 @@
 let  debug = require('debug')('app:index');//
 const express = require('express');
 const morgan = require('morgan');
+
+const config = require('config');
+
 const configDB = require('./config');
+
+if (!config.get('jwtPrivateKey')){
+    console.error('FATAL ERROR: jwtPrivateKey is not defined.');
+    process.exit(1);
+}
 
 // ENABLE THE DEBUGGER
 process.env.DEBUG="*"

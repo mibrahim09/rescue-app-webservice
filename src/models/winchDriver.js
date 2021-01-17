@@ -1,10 +1,11 @@
 const { request } = require('express');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);// To validate ObjectId.
-
+const jwt = require('jsonwebtoken');
+const config = require('config');
 const mongoose = require('mongoose');
 
-const Driver = mongoose.model('winch_users', new mongoose.Schema({
+const driverSchema = mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
@@ -63,8 +64,14 @@ const Driver = mongoose.model('winch_users', new mongoose.Schema({
         type: String,
         required: function() { return this.approvalState; }
     }
-}));
+});
 
+driverSchema.methods.generateAuthToken = function (){
+    const token = jwt.sign({_id: this._id},config.get('jwtPrivateKey'));
+    return token;
+}
+
+const Driver = mongoose.model('winch_users', driverSchema );
 
 function validateWinchUser(request) {
     // Validation
@@ -105,7 +112,8 @@ async function createWinchUser(request, response) {
     });
     try {
         const driverPromise = await driver.save();
-        response.status(200).send(driverPromise);
+        const token = customer.generateAuthToken();
+        response.status(200).header('x-auth-token',token).send(driverPromise); 
     }
     catch (ex) {
         response.status(400).send(ex.message);

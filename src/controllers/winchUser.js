@@ -13,10 +13,10 @@ async function handleWinchDriverRegisteration(request, response) {
 
     let driver = await Driver.findOne({ phoneNumber: request.body.phoneNumber });
     if (driver) return response.status(400).send({
-        "_id": user._id,
-        "firstName": user.firstName,
-        "lastName": user.lastName,
-        "phoneNumber": user.phoneNumber, // We should also send a token here.
+        "_id": driver._id,
+        "firstName": driver.firstName,
+        "lastName": driver.lastName,
+        "phoneNumber": driver.phoneNumber, // We should also send a token here.
         "error": "Already exists."
     }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     
@@ -48,7 +48,7 @@ async function handleUpdateData(request, response) {
         const result = await driver.updateOne({
             firstName: request.body.firstName,
             lastName: request.body.lastName,
-            winchState: request.body.lastName
+            winchState: request.body.winchState
         });
         response.status(200).send("OK");
     }

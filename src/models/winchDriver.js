@@ -56,7 +56,8 @@ const Driver = mongoose.model('winch_users', new mongoose.Schema({
     winchState:{
         type: String,
         required: function() { return this.approvalState; },
-        enum: ['Offline','Idle','Busy']
+        enum: ['Offline','Idle','Busy'],
+        default: 'Offline'
     },
     locationsCovered:{
         type: String,

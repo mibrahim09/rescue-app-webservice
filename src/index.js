@@ -1,9 +1,9 @@
 let  debug = require('debug')('app:index');//
 const express = require('express');
 const morgan = require('morgan');
-
 const config = require('config');
-
+const bodyParser = require('body-parser');
+const multer  = require('multer');
 const configDB = require('./config');
 
 if (!config.get('jwtPrivateKey')){
@@ -14,9 +14,20 @@ if (!config.get('jwtPrivateKey')){
 // ENABLE THE DEBUGGER
 process.env.DEBUG="*"
 debug.enabled = true;
+/*
+const fileStorage = multer.diskStorage({
+    destination : (req,file,cb) => {
+        cb(null,'images');
+    },
+    filename : (req,file,cb) => {
+        cb(null,file.filename + '-' + file.originalname);
+    }
+});*/
 
-// const bodyParser = require('body-parser')
 const app = express();// Created a new web server
+
+app.use(bodyParser.urlencoded({ extended: false }));
+//app.use(multer({storage: fileStorage}).single('image'));
 
 app.use(express.urlencoded({ extended: true }));// parse application/x-www-form-urlencoded
 app.use(express.json());// parse application/json

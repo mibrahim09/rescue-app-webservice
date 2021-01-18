@@ -1,6 +1,7 @@
 const configDB = require('../config');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const multer  = require('multer');
 const { Driver, createWinchUser, validateWinchUser: validateWinchUser } = require('../models/winchDriver');
 
 
@@ -16,7 +17,9 @@ async function handleWinchDriverRegisteration(request, response) {
         "_id": driver._id,
         "firstName": driver.firstName,
         "lastName": driver.lastName,
-        "phoneNumber": driver.phoneNumber, // We should also send a token here.
+        "phoneNumber": driver.phoneNumber,
+        "winchPlates": driver.winchPlates, 
+        "personalPicture": driver.personalPicture, 
         "error": "Already exists."
     }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     
@@ -39,7 +42,7 @@ async function handleUpdateData(request, response) {
         .status(400)
         .send({ "error": error2.details[0].message });
 
-    let driver = await Customer.findOne({ _id: request.params.id });
+    let driver = await Driver.findOne({ _id: request.params.id });
     if (!driver) return response.status(400).send({
         "error": "User doesn't exist."
     });

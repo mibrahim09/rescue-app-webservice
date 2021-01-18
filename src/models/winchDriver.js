@@ -4,6 +4,7 @@ Joi.objectId = require('joi-objectid')(Joi);// To validate ObjectId.
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');
+const multer  = require('multer');
 
 const driverSchema = mongoose.Schema({
     phoneNumber: {
@@ -34,16 +35,10 @@ const driverSchema = mongoose.Schema({
         minlength: 4,
         maxlength: 7
     },
-    /*
     personalPicture: {
         type: String,
-        required: function() { return this.isMobileVerified; },
-        validate:{
-            validator: function(v){
-
-            },
-        }       
-    }, */
+        required: function() { return this.isMobileVerified; }      
+    },
     //driverLicensePicture: {},
     //winchLicenseFrontPicture: {},
     //winchLicenseRearPicture: {},
@@ -76,11 +71,12 @@ const Driver = mongoose.model('winch_users', driverSchema );
 function validateWinchUser(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required(),
-        firstName: Joi.string().min(2).max(10).required(),
-        lastName: Joi.string().min(2).max(10).required(),
-        winchPlates: Joi.string().alphanum().min(4).max(7).required(),
-        personalPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required()
+        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required()
+        /*
+        firstName: Joi.string().min(2).max(10),
+        lastName: Joi.string().min(2).max(10),
+        winchPlates: Joi.string().alphanum().min(4).max(7),
+        personalPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i) */
 
         //driverLicensePicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
         //winchLicenseFrontPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
@@ -97,11 +93,13 @@ function validateWinchUser(request) {
 }
 async function createWinchUser(request, response) {
     const driver = new Driver({
-        phoneNumber: request.body.phoneNumber,
+        phoneNumber: request.body.phoneNumber
+        /*
         firstName: request.body.firstName,
         lastName: request.body.lastName,
         winchPlates: request.body.winchPlates,
-        personalPicture: request.body.personalPicture
+        personalPicture: request.file
+        */
 
         //driverLicensePicture: ,
         //winchLicenseFrontPicture: ,
@@ -112,7 +110,7 @@ async function createWinchUser(request, response) {
     });
     try {
         const driverPromise = await driver.save();
-        const token = customer.generateAuthToken();
+        const token = driver.generateAuthToken();
         response.status(200).header('x-auth-token',token).send(driverPromise); 
     }
     catch (ex) {

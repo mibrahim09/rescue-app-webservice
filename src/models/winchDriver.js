@@ -107,7 +107,7 @@ async function createWinchUser(request, response) {
     try {
         const driverPromise = await driver.save();
         const token =  await driver.generateAuthToken();
-        response.status(200).send(token);
+        response.status(200).send({"token": token});
     }
     catch (ex) {
         response.status(400).send(ex.message);

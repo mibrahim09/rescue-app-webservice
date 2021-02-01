@@ -2,8 +2,8 @@ const firebase = require('../controllers/firebase');
 const configDB = require('../config');
 const Joi = require('joi');
 const _ = require('lodash');
-var mergeJSON = require("merge-json");
-Joi.objectId = require('joi-objectid')(Joi);
+//var mergeJSON = require("merge-json");
+//Joi.objectId = require('joi-objectid')(Joi);
 const { Customer, createCustomer, validatePhone } = require('../models/customer');
 
 

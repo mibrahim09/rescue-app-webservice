@@ -1,6 +1,6 @@
 const { request } = require('express');
 const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);// To validate ObjectId.
+//Joi.objectId = require('joi-objectid')(Joi);// To validate ObjectId.
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');

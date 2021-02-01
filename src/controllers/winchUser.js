@@ -81,10 +81,10 @@ async function handleRestOfImageData(request, response) {
             winchLicenseRearPicture: request.files[3].path,
             driverCriminalRecordPicture: request.files[4].path,
             driverDrugAnalysisPicture: request.files[5].path,
-            winchCheckReportPicture: request.files[6].path,
+            winchCheckReportPicture: request.files[6].path
 
             //For Testing
-            approvalState: true
+            //approvalState: true
             },
             {
                 new: true

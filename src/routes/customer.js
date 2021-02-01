@@ -1,9 +1,9 @@
-//const auth = require('../middleware/auth');
 const router = require("express").Router();
 const customerHandler = require('../controllers/customer');
+const auth = require('../middleware/authnewuser');
 
 // /api/customer/:id
-router.post('/:id/updateprofile', async(req, res) => {
+router.post('/me/updateprofile', auth, async(req, res) => {
     customerHandler.handleUpdateData(req, res);
 });
 

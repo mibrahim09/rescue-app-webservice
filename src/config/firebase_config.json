@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "rescuemycarapp",
+  "private_key_id": "d8f8993a35b643940de892d5030edfe89d88d089",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCvf5qq7DGsMEuU\n9XIL3j3XVbwDe5SukYZN8LFdIQNK/Z5vdsb+5drpSuQQE4RpcqVuYFXgu5kgEiyM\ntl9v04flcB8pJvHIrroxEV1Rysdjw18AzY0YOw4Hj3oOywE9+zM/Rykpl+hch1ac\n+bKnrY49YSZqKdI5iNqxvUee/2goO3YMQjDRKNT2I2qGbJpO6/AZ0lduqFENj/rW\npgLeKqNa9DeuWPdHe6vLUOyWOrB5BtHx+kfALHBU6nG0W0Gccwxaaf+GBZB6ZEmH\nfaJQHXydPhUD9qgjZjLVdAqK8Fz6qSXjsEsaczNJryhrG4kZ90ZQG40EHdUCPWuR\ntJway7rxAgMBAAECggEAH9mywk53fV6OeQxKlGjTJF+E7cTh6QS0MTT7m4FATb3V\noTkXSG+C2VAkL96660BJUczeCRlC4xUpTKhUjcEAKt28agWNX/SGCh2yqAN7SFnO\nxiCH+NvO4gRiDIk/QnZyiItrpwbQvuo5B+gxSkkvRWh6Rk4svxBdUGCfvPVxe8tx\nm4+5o53JxnIZp+QacqvL4tlHGG4TOqO8JNfb5qDBAtROxtgcNbfFIsVLLsWMfwte\nnP6K3WA2sWl6X/O7HDbmiA71U8x/ERaHuSKBALKk3axLJoFogMRhKHHER1FyxYI4\n3sWb6kTzl6Kbmh0G2DsOEhk6jiYK08dxQv6LgFt3eQKBgQDm2DQLrhv+fipiDbzm\nK9sxmnR7HOSUhpGVI/jsn6DI+GqSddjJxZhYKj3I1IFYPZQhDFh+8cA314frkiL7\nmcSffMiDfALEJ2D5xg3yI5caRSxQA/4KoYNNMqpRjqXR58aB1okVaYyA80ddWscv\nQVFR9Zh3TC4MtTgGcvbKyVDMqwKBgQDCn2259tpxY7NLfuPpiqGKvcJ2Y/3FYS2E\nSre/G1rliwQ1XCrhD0wrq4ais1+mkJkCl5sogFsAGzv1YRDn3jhq6HJRfhG3f55D\nUn/e8Kd/IrWWnwR5eSv+BpgH6QMVXOeVQ8/7XXUkUCjJ+Nr7KLe59QXC3dkeZgaI\n7PvAYaUe0wKBgQCOMowMzdlssOcGs5Oy7Tz+lzg9RhT/8Mzo49nIWKRAZ9WuFm3O\nDKvFU2/vsAdlBbmjielReTWAsIGHeOOXvKbD36fcZp2FmwQ/l+KrT4Uap5WeTHdG\nsSsieJ010/sNDArZm/+hcv0bycAiH3MnBsNDC1g51HFhXpf+UP74932QNQKBgQCw\nT9QMs2gDbwnfq+13BgMAeJYxwLYGWNnuTe4WMAbxijXezUd/KeecbECFJrDRaY9k\nPMnwMA/AkeuIiU3ScIt1tmzSDL6qGO/cF2IGKsfisiQFdruL/EzxTTHvgJUthkO6\nAnvpQSo9Im1BQ7PF8oY27ZUxit8F3fGvm9kZ2JvIxwKBgHKMlIDOvAFOS7K8/Ya5\npW5MObkgYjURf+JQVjmMdV9PGREkMvYoA/aaO2Esvd5i9DCSQCekULENKYiZYbeM\n8VQDg0BIdne65dvMEt9BC6losWP4TBRtYriXBciMywmxKxiEji5W5YgUtzH6ps4K\nc267AiRAf1k2LcpferWcftuI\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-4wrru@rescuemycarapp.iam.gserviceaccount.com",
+  "client_id": "106815853208433973875",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4wrru%40rescuemycarapp.iam.gserviceaccount.com"
+}

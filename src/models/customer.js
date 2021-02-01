@@ -21,14 +21,18 @@ const userSchema = mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
-        length: 11,
+        length: 13,
         unique: true
     },
     isMobileVerified: Boolean
 });
 
-userSchema.methods.generateAuthToken = function (){
-    const token = jwt.sign({_id: this._id},config.get('jwtPrivateKey'));
+userSchema.methods.generateAuthToken = function () {
+    const token = jwt.sign({
+        _id: this._id,
+        firstName: this.firstName,
+        lastName: this.lastName
+    }, config.get('jwtPrivateKey'));
     return token;
 }
 
@@ -37,7 +41,8 @@ const Customer = mongoose.model('customers_users', userSchema);
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
+        fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 
@@ -50,12 +55,8 @@ async function createCustomerUser(request, response) {
     });
     try {
         const customerPromise = await customer.save();
-        const myResponse = {
-            "_id": customerPromise._id,
-            "Exists": false
-        };
-        const token = customer.generateAuthToken();
-        response.status(200).header('x-auth-token',token).send(myResponse); 
+        const token = await customer.generateAuthToken();
+        response.status(200).send({"token": token});
     }
     catch (ex) {
         response.status(400).send(ex.message);

@@ -1,16 +1,14 @@
 const { request } = require('express');
 const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);// To validate ObjectId.
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');
-const multer  = require('multer');
 
 const driverSchema = mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
-        length: 11,
+        length: 13,
         unique: true
     },
     isMobileVerified: {
@@ -20,13 +18,13 @@ const driverSchema = mongoose.Schema({
     firstName: {
         type: String,
         required: function() { return this.isMobileVerified; },
-        minlength: 3,
+        minlength: 2,
         maxlength: 20
     },
     lastName: {
         type: String,
         required: function() { return this.isMobileVerified; },
-        minlength: 3,
+        minlength: 2,
         maxlength: 20
     },
     winchPlates: {
@@ -35,58 +33,69 @@ const driverSchema = mongoose.Schema({
         minlength: 4,
         maxlength: 7
     },
-    personalPicture: {
-        type: String,
-        required: function() { return this.isMobileVerified; }      
+    locationsCovered:{
+        type: String
+        //required: function() { return this.approvalState; }
     },
-    //driverLicensePicture: {},
-    //winchLicenseFrontPicture: {},
-    //winchLicenseRearPicture: {},
-    //driverCriminalRecordPicture: {},
-    //driverDrugAnalysisPicture: {},
-    //winchCheckReportPicture: {},
+    
+    personalPicture: {
+        type: String
+        //required: function() { return this.isMobileVerified; }      
+    },
+    driverLicensePicture: { type: String },
+    winchLicenseFrontPicture: { type: String },
+    winchLicenseRearPicture: { type: String },
+    driverCriminalRecordPicture: { type: String },
+    driverDrugAnalysisPicture: { type: String },
+    winchCheckReportPicture: { type: String },
+    
     approvalState:{
         type: Boolean,
         default: false
     }, 
     winchState:{
         type: String,
-        required: function() { return this.approvalState; },
+        //required: function() { return this.approvalState; },
         enum: ['Offline','Idle','Busy'],
         default: 'Offline'
-    },
-    locationsCovered:{
-        type: String,
-        required: function() { return this.approvalState; }
     }
 });
 
-driverSchema.methods.generateAuthToken = function (){
-    const token = jwt.sign({_id: this._id},config.get('jwtPrivateKey'));
+driverSchema.methods.generateAuthToken = function () {
+    const token = jwt.sign({
+        _id: this._id,
+        firstName: this.firstName,
+        lastName: this.lastName,
+        winchPlates: this.winchPlates,
+        locationsCovered: this.locationsCovered
+    }, config.get('jwtPrivateKey'));
+    return token;
+}
+driverSchema.methods.generateFinalAuthToken = function () {
+    const token = jwt.sign({
+        _id: this._id,
+        firstName: this.firstName,
+        lastName: this.lastName,
+        winchPlates: this.winchPlates,
+        locationsCovered: this.locationsCovered,
+        personalPicture: this.personalPicture,
+        driverLicensePicture: this.driverLicensePicture,
+        winchLicenseFrontPicture: this.winchLicenseFrontPicture,
+        winchLicenseRearPicture: this.winchLicenseRearPicture,
+        driverCriminalRecordPicture: this.driverCriminalRecordPicture,
+        driverDrugAnalysisPicture: this.driverDrugAnalysisPicture,
+        winchCheckReportPicture: this.winchCheckReportPicture
+    }, config.get('jwtPrivateKey'));
     return token;
 }
 
 const Driver = mongoose.model('winch_users', driverSchema );
 
-function validateWinchUser(request) {
+function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(11).regex(/^(01)[0-9]{9}$/).required()
-        /*
-        firstName: Joi.string().min(2).max(10),
-        lastName: Joi.string().min(2).max(10),
-        winchPlates: Joi.string().alphanum().min(4).max(7),
-        personalPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i) */
-
-        //driverLicensePicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchLicenseFrontPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchLicenseRearPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //driverCriminalRecordPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //driverDrugAnalysisPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-        //winchCheckReportPicture: Joi.string().regex(/\.(jpg|jpeg|png)$/i).required(),
-          
-        // to confirm valid obj id but not on registeration of course.
-        // customerId: Joi.objectId().required() //just an example
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
+        fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 
@@ -94,32 +103,19 @@ function validateWinchUser(request) {
 async function createWinchUser(request, response) {
     const driver = new Driver({
         phoneNumber: request.body.phoneNumber
-        /*
-        firstName: request.body.firstName,
-        lastName: request.body.lastName,
-        winchPlates: request.body.winchPlates,
-        personalPicture: request.file
-        */
-
-        //driverLicensePicture: ,
-        //winchLicenseFrontPicture: ,
-        //winchLicenseRearPicture: ,
-        //driverCriminalRecordPicture: ,
-        //driverDrugAnalysisPicture: ,
-        //winchCheckReportPicture:  
     });
     try {
         const driverPromise = await driver.save();
-        const token = driver.generateAuthToken();
-        response.status(200).header('x-auth-token',token).send(driverPromise); 
+        const token =  await driver.generateAuthToken();
+        response.status(200).send(token);
     }
     catch (ex) {
         response.status(400).send(ex.message);
     }
 }
-
+    
 module.exports = {
     Driver: Driver,
     createWinchUser: createWinchUser,
-    validateWinchUser: validateWinchUser
+    validatePhone: validatePhone
 };

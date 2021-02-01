@@ -1,3 +1,4 @@
 {
-    "jwtPrivateKey" : ""
+    "jwtPrivateKey": "KillerPrivateKey",
+    "firebaseDatabase": "https://car-rescue-4174a.firebaseio.com"
 }

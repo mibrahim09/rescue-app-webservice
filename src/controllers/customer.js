@@ -1,3 +1,4 @@
+const firebase = require('../controllers/firebase');
 const configDB = require('../config');
 const Joi = require('joi');
 const _ = require('lodash');
@@ -13,13 +14,19 @@ async function handleCustomerRegisteration(request, response) {
         .status(400)
         .send({ "error": error.details[0].message });
 
+    const msg = await firebase.validateCustomerPhone(request);
+    if (msg !== "OK") {
+        return response.status(400).send({
+            "error": msg
+        });
+    }
+
+
     let user = await Customer.findOne({ phoneNumber: request.body.phoneNumber });
     if (user) {
 
-        var result = _.pick(user, ['_id', 'firstName', 'lastName', 'phoneNumber']); // pick these from user
-        result = mergeJSON.merge(result, { "Exists": true });
-
-        return response.status(200).send(result); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
+        var result = await user.generateAuthToken();
+        return response.status(200).send({ "token": result }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     }
     // VALID USER.
     // TODO: SEND VERIFICATION NUMBER AND ACCESSTOKEN.
@@ -34,23 +41,26 @@ async function handleUpdateData(request, response) {
         .status(400)
         .send({ "error": error.details[0].message });
 
+    let user = await Customer.findOne({ _id: request.user._id });
 
-    const { error2, value2 } = validateObjectId(request);
-    if (error2) return response
-        .status(400)
-        .send({ "error": error2.details[0].message });
-
-    let user = await Customer.findOne({ _id: request.params.id });
     if (!user) return response.status(400).send({
         "error": "User doesn't exist."
     });
 
     try {
-        const result = await user.updateOne({
-            firstName: request.body.firstName,
-            lastName: request.body.lastName
-        });
-        response.status(200).send("OK");
+
+        let result = await Customer.findOneAndUpdate(
+            { _id: request.user._id },// filter
+            { // updated data
+                firstName: request.body.firstName,
+                lastName: request.body.lastName
+            },
+            {
+                new: true
+            });
+
+        const newToken = await result.generateAuthToken();// NEW TOKEN with the first and last name set.
+        response.status(200).send({ "token": newToken });
     }
     catch (ex) {
         response.status(400).send({ "error": ex.message });
@@ -67,19 +77,10 @@ function validateUpdateCustomer(request) {
         firstName: Joi.string().min(2).max(20).required(),
         lastName: Joi.string().min(2).max(20).required()
     });
-    return validationSchema.validate(request.body);
+    return validationSchema.validate(_.pick(request.body, ['firstName', 'lastName']));
 
 }
 
-
-function validateObjectId(request) {
-    // Validation
-    const validationSchema = Joi.object({
-        id: Joi.objectId().required()
-    });
-    return validationSchema.validate(request.params);
-
-}
 
 module.exports = {
     handleCustomerRegisteration: handleCustomerRegisteration,

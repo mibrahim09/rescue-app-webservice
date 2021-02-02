@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');
 
+var locationCovered = ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"];
+
 const driverSchema = mongoose.Schema({
     phoneNumber: {
         type: String,
@@ -19,23 +21,32 @@ const driverSchema = mongoose.Schema({
         type: String,
         required: function() { return this.isMobileVerified; },
         minlength: 2,
-        maxlength: 20
+        maxlength: 20,
+        match: /[a-zA-Z]|[ء-ي]/
     },
     lastName: {
         type: String,
         required: function() { return this.isMobileVerified; },
         minlength: 2,
-        maxlength: 20
+        maxlength: 20,
+        match: /[a-zA-Z]|[ء-ي]/
     },
     winchPlates: {
         type: String,
         required: function() { return this.isMobileVerified; },
         minlength: 4,
-        maxlength: 7
+        maxlength: 7,
+        match: /([0-9][ء-ي])|([ء-ي][0-9])/
+    },
+    city:{
+        type: String,
+        enum: ['Cairo','Alexandria'],
+        required: function() { return this.isMobileVerified; }
     },
     locationsCovered:{
-        type: String
-        //required: function() { return this.approvalState; }
+        type: [String], 
+        enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
+        default: null
     },
     
     personalPicture: {
@@ -67,6 +78,7 @@ driverSchema.methods.generateAuthToken = function () {
         firstName: this.firstName,
         lastName: this.lastName,
         winchPlates: this.winchPlates,
+        city: this.city,
         locationsCovered: this.locationsCovered
     }, config.get('jwtPrivateKey'));
     return token;
@@ -94,8 +106,8 @@ const Driver = mongoose.model('winch_users', driverSchema );
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
-        fireBaseId: Joi.string().required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required()
+        //fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 

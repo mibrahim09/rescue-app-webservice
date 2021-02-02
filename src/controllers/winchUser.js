@@ -3,6 +3,7 @@ const configDB = require('../config');
 const Joi = require('joi');
 const _ = require('lodash');
 const { Driver, createWinchUser,  validatePhone } = require('../models/winchDriver');
+const { request } = require('express');
 
 async function handleWinchDriverRegisteration(request, response) {
 
@@ -11,12 +12,12 @@ async function handleWinchDriverRegisteration(request, response) {
         .status(400)
         .send({ "error": error.details[0].message });
 
-    const msg = await firebase.validateCustomerPhone(request);
+    /*const msg = await firebase.validateCustomerPhone(request);
     if (msg !== "OK") {
         return response.status(400).send({
             "error": msg
         });
-    }
+    }*/
 
     let driver = await Driver.findOne({ phoneNumber: request.body.phoneNumber });
     if (driver) {
@@ -41,22 +42,29 @@ async function handleUpdateData(request, response) {
     if (!driver) return response.status(400).send({
         "error": "User doesn't exist."
     });
-    
+   
     try {
-        const result = await Driver.findOneAndUpdate(
-            { _id: request.driver._id },// filter
-            {
+    const result = await Driver.findByIdAndUpdate(
+        { _id: request.driver._id },// filter
+        {
+            $set:{
                 isMobileVerified: true,
                 firstName: request.body.firstName,
                 lastName: request.body.lastName,
                 winchPlates: request.body.winchPlates,
+                city: request.body.city, 
                 locationsCovered: request.body.locationsCovered
-            },
-            {
-                new: true
-            });
+                /*if (request.body.locationsCovered) {
+                    locationsCovered: Array.isArray(request.body.locationsCovered) ? request.body.locationsCovered : [request.body.locationsCovered];
+                    } */
+                //"locationsCovered": ["Alexandria Desert Road", "Alexandria Agriculture Road"]
+            }  
+        },
+        {
+            new: true
+        });
 
-        const newToken = await driver.generateAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateAuthToken();// NEW TOKEN with the rest of data set.
         response.status(200).send({ "New Token": newToken });
         }
     catch (ex) {
@@ -90,7 +98,7 @@ async function handleRestOfImageData(request, response) {
                 new: true
             });
             
-        const newToken = await driver.generateFinalAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateFinalAuthToken();// NEW TOKEN with the rest of data set.
         response.status(200).send({ "New Token": newToken });
     }
     catch (ex) {
@@ -128,10 +136,12 @@ function validateUpdateDriver(request) {
         firstName: Joi.string().min(2).max(20).regex(/[a-zA-Z]|[ء-ي]/).required(),
         lastName: Joi.string().min(2).max(20).regex(/[a-zA-Z]|[ء-ي]/).required(),
         winchPlates: Joi.string().min(4).max(7).regex(/([0-9][ء-ي])|([ء-ي][0-9])/).required(),
+        city:Joi.string().valid('Cairo','Alexandria').required()
         //winchPlates: Joi.string().alphanum().min(4).max(7).required(),
-        locationsCovered: Joi.string().required()
+        //locationsCovered: Joi.string().valid("Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast")
+        //, 'locationsCovered'
     });
-    return validationSchema.validate(_.pick(request.body, ['firstName', 'lastName','winchPlates', 'locationsCovered']));
+    return validationSchema.validate(_.pick(request.body, ['firstName', 'lastName', 'winchPlates', 'city']));
 
 }
 

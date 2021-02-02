@@ -14,7 +14,7 @@ const fileStorage = multer.diskStorage({
 const upload = multer({
     storage: fileStorage,
     limits:{
-        fileSize : 1000000,
+        fileSize : 10000000,
     },
     fileFilter(req,file,cb){
         if((!file.originalname.match(/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/))) return cb(new Error("File Format Is Incorrect !"));

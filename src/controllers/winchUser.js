@@ -42,7 +42,7 @@ async function handleUpdateData(request, response) {
     if (!driver) return response.status(400).send({
         "error": "User doesn't exist."
     });
-   
+
     try {
     const result = await Driver.findByIdAndUpdate(
         { _id: request.driver._id },// filter
@@ -137,9 +137,12 @@ function validateUpdateDriver(request) {
         lastName: Joi.string().min(2).max(20).regex(/[a-zA-Z]|[ء-ي]/).required(),
         winchPlates: Joi.string().min(4).max(7).regex(/([0-9][ء-ي])|([ء-ي][0-9])/).required(),
         city:Joi.string().valid('Cairo','Alexandria').required()
-        //winchPlates: Joi.string().alphanum().min(4).max(7).required(),
+        //, 'city'
         //locationsCovered: Joi.string().valid("Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast")
         //, 'locationsCovered'
+
+        //Postman
+        //"locationsCovered": "Alexandria Desert Road"
     });
     return validationSchema.validate(_.pick(request.body, ['firstName', 'lastName', 'winchPlates', 'city']));
 

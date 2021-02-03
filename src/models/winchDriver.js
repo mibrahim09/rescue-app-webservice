@@ -3,6 +3,7 @@ const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');
+const { required } = require('joi');
 
 var locationCovered = ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"];
 
@@ -43,16 +44,48 @@ const driverSchema = mongoose.Schema({
         enum: ['Cairo','Alexandria'],
         required: function() { return this.isMobileVerified; }
     },
+    /*locationsCovered:{
+        0: {
+            locations: [{
+                type: String, 
+                enum: ["Cairo Desert Road", "Cairo Agriculture Road"],
+                default: null
+                } ]
+            },
+        1: {
+            locations: [{
+                type: String, 
+                enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
+                default: null
+                } ]
+            }
+    },*/
     locationsCovered:{
-        type: [String], 
-        enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
-        default: null
+         type: String, 
+         enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
+         /*validate: { validator : function() {
+                return this.city = 'Alexandria' ;
+         },
+         message : "Cairo doesn't have locations"
+        }*/
     },
+    /*location: {
+        1: {
+            city: {
+                type: String,
+                value : 'Alexandria',
+                required: function() { return this.isMobileVerified; }
+
+                },
+            locationsCovered: {
+                type: [String], 
+                enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
+                default: null
+                } 
+            }
+    },*/
     
-    personalPicture: {
-        type: String
-        //required: function() { return this.isMobileVerified; }      
-    },
+    personalPicture: { type: String },
     driverLicensePicture: { type: String },
     winchLicenseFrontPicture: { type: String },
     winchLicenseRearPicture: { type: String },
@@ -77,9 +110,9 @@ driverSchema.methods.generateAuthToken = function () {
         _id: this._id,
         firstName: this.firstName,
         lastName: this.lastName,
-        winchPlates: this.winchPlates,
-        city: this.city,
-        locationsCovered: this.locationsCovered
+        winchPlates: this.winchPlates
+        //city: this.city,
+        //locationsCovered: this.locationsCovered
     }, config.get('jwtPrivateKey'));
     return token;
 }

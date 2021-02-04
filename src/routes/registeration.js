@@ -9,8 +9,7 @@ router.post('/customer', async(req, res) => {
 
 // /api/registeration/winchUser
 router.post('/winchUser', async(req, res) => {
-    winchDriverHandler.handleWinchDriverRegisteration(req, res);
-    
+    winchDriverHandler.handleWinchDriverRegisteration(req, res); 
 });
 
 module.exports = router;

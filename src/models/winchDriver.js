@@ -5,7 +5,17 @@ const config = require('config');
 const mongoose = require('mongoose');
 const { required } = require('joi');
 
-var locationCovered = ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"];
+/*['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
+        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura', 
+        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 
+        'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta']*/
+/*[
+    'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة','بنها'
+        , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
+        'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
+        , 'اسيوط','اسوان', 'المنيا', 'بني سويف', 'الفيوم',
+        'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'
+]*/
 
 const driverSchema = mongoose.Schema({
     phoneNumber: {
@@ -28,7 +38,7 @@ const driverSchema = mongoose.Schema({
     lastName: {
         type: String,
         required: function() { return this.isMobileVerified; },
-        minlength: 2,
+        minlength: 3,
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
@@ -39,9 +49,17 @@ const driverSchema = mongoose.Schema({
         maxlength: 7,
         match: /([0-9][ء-ي])|([ء-ي][0-9])/
     },
-    city:{
+    governorate:{
         type: String,
-        enum: ['Cairo','Alexandria'],
+        enum: ['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
+        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura', 
+        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 
+        'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
+        'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة','بنها'
+        , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
+        'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
+        , 'اسيوط','اسوان', 'المنيا', 'بني سويف', 'الفيوم',
+        'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
         required: function() { return this.isMobileVerified; }
     },
     /*locationsCovered:{
@@ -60,15 +78,17 @@ const driverSchema = mongoose.Schema({
                 } ]
             }
     },*/
+    
+    /*
     locationsCovered:{
          type: String, 
          enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
-         /*validate: { validator : function() {
+         validate: { validator : function() {
                 return this.city = 'Alexandria' ;
          },
          message : "Cairo doesn't have locations"
-        }*/
-    },
+        }
+    },*/
     /*location: {
         1: {
             city: {
@@ -110,8 +130,8 @@ driverSchema.methods.generateAuthToken = function () {
         _id: this._id,
         firstName: this.firstName,
         lastName: this.lastName,
-        winchPlates: this.winchPlates
-        //city: this.city,
+        winchPlates: this.winchPlates,
+        governorate: this.governorate
         //locationsCovered: this.locationsCovered
     }, config.get('jwtPrivateKey'));
     return token;

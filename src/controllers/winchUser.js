@@ -5,7 +5,7 @@ const _ = require('lodash');
 const { Driver, createWinchUser,  validatePhone } = require('../models/winchDriver');
 const { request } = require('express');
 
-const translate = require('translatte');
+//const translate = require('translatte');
 
 async function handleWinchDriverRegisteration(request, response) {
 

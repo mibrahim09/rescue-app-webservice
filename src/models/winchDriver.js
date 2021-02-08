@@ -142,7 +142,7 @@ driverSchema.methods.generateFinalAuthToken = function () {
         firstName: this.firstName,
         lastName: this.lastName,
         winchPlates: this.winchPlates,
-        locationsCovered: this.locationsCovered,
+        governorate: this.governorate,
         personalPicture: this.personalPicture,
         driverLicensePicture: this.driverLicensePicture,
         winchLicenseFrontPicture: this.winchLicenseFrontPicture,

@@ -4,5 +4,6 @@ var router = require('express').Router();
 router.use("/api/registeration", require("./routes/registeration"));
 router.use("/api/customer", require("./routes/customer"));
 router.use("/api/winchDriver", require("./routes/winchDriver"));
+router.use("/api/mechanic", require("./routes/mechanic"));
 
 module.exports = router;

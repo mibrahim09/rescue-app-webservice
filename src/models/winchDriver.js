@@ -83,7 +83,7 @@ const driverSchema = mongoose.Schema({
     }
 });
 
-driverSchema.methods.generateAuthToken = function () {
+driverSchema.methods.generateAuthToken = function (verified) {
     const token = jwt.sign({
         _id: this._id,
         //firstName: this.firstName,
@@ -95,7 +95,7 @@ driverSchema.methods.generateAuthToken = function () {
     }, config.get('jwtPrivateKey'));
     return token;
 }
-driverSchema.methods.generateFinalAuthToken = function () {
+driverSchema.methods.generateFinalAuthToken = function (verified) {
     const token = jwt.sign({
         _id: this._id,
         //firstName: this.firstName,
@@ -120,8 +120,8 @@ const Driver = mongoose.model('winch_users', driverSchema);
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
-        fireBaseId: Joi.string().required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required()
+        //fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 

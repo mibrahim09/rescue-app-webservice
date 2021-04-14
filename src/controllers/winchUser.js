@@ -23,9 +23,18 @@ async function handleWinchDriverRegisteration(request, response) {
 
     let driver = await Driver.findOne({ phoneNumber: request.body.phoneNumber });
     if (driver) {
-
-        var result = await driver.generateAuthToken();
-        return response.status(200).send({ "token": result }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
+        verified = false;
+        if (driver.firstName && driver.lastName && driver.winchPlates && 
+            driver.personalPicture && driver.driverLicensePicture && driver.winchLicenseFrontPicture && driver.winchLicenseRearPicture &&
+            driver.driverCriminalRecordPicture && driver.driverDrugAnalysisPicture && driver.winchCheckReportPicture)
+            verified = true;
+        var result = await driver.generateAuthToken(verified);
+        if (verified)
+            // USER ALREADY EXISTS and has a first or last name. Send them
+            return response.status(200).send({ "token": result, "firstName": driver.firstName, "lastName": driver.lastName, "winchPlates": driver.winchPlates }); 
+        else
+            // USER ALREADY EXISTS. ==> but no first or last name.
+            return response.status(200).send({ "token": result });
     }
 
     // VALID USER.
@@ -73,7 +82,7 @@ async function handleUpdateData(request, response) {
                 new: true
             });
 
-        const newToken = await result.generateAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateAuthToken(true);// NEW TOKEN with the rest of data set.
         response.status(200).send({ "token": newToken });
     }
     catch (ex) {
@@ -107,7 +116,7 @@ async function handleRestOfImageData(request, response) {
                 new: true
             });
 
-        const newToken = await result.generateFinalAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateFinalAuthToken(true);// NEW TOKEN with the rest of data set.
         response.status(200).send({ "token": newToken });
     }
     catch (ex) {

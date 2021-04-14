@@ -86,27 +86,31 @@ const driverSchema = mongoose.Schema({
 driverSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({
         _id: this._id,
-        firstName: this.firstName,
-        lastName: this.lastName,
-        winchPlates: this.winchPlates,
-        governorate: this.governorate
+        //firstName: this.firstName,
+        //lastName: this.lastName,
+        //winchPlates: this.winchPlates,
+        //governorate: this.governorate
+        verified: verified,
+        user_type: "winchDriver"
     }, config.get('jwtPrivateKey'));
     return token;
 }
 driverSchema.methods.generateFinalAuthToken = function () {
     const token = jwt.sign({
         _id: this._id,
-        firstName: this.firstName,
-        lastName: this.lastName,
-        winchPlates: this.winchPlates,
-        governorate: this.governorate,
-        personalPicture: this.personalPicture,
-        driverLicensePicture: this.driverLicensePicture,
-        winchLicenseFrontPicture: this.winchLicenseFrontPicture,
-        winchLicenseRearPicture: this.winchLicenseRearPicture,
-        driverCriminalRecordPicture: this.driverCriminalRecordPicture,
-        driverDrugAnalysisPicture: this.driverDrugAnalysisPicture,
-        winchCheckReportPicture: this.winchCheckReportPicture
+        //firstName: this.firstName,
+        //lastName: this.lastName,
+        //winchPlates: this.winchPlates,
+        //governorate: this.governorate,
+        //personalPicture: this.personalPicture,
+        //driverLicensePicture: this.driverLicensePicture,
+        //winchLicenseFrontPicture: this.winchLicenseFrontPicture,
+        //winchLicenseRearPicture: this.winchLicenseRearPicture,
+        //driverCriminalRecordPicture: this.driverCriminalRecordPicture,
+        //driverDrugAnalysisPicture: this.driverDrugAnalysisPicture,
+        //winchCheckReportPicture: this.winchCheckReportPicture
+        verified: verified,
+        user_type: "winchDriver"
     }, config.get('jwtPrivateKey'));
     return token;
 }
@@ -128,7 +132,7 @@ async function createWinchUser(request, response) {
     });
     try {
         const driverPromise = await driver.save();
-        const token = await driver.generateAuthToken();
+        const token = await driver.generateAuthToken(false);
         response.status(200).send({ "token": token });
     }
     catch (ex) {

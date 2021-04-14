@@ -173,7 +173,7 @@ async function handleDriverRequest(request,response) {
 
     
     if (ReadyToAcceptRides.size==0){
-        return response.status(400).send({ "error": "No client requests now" });
+        return response.status(400).send( { "error": "No client requests now"});
 
     }
     const promise=rideinturn=>new Promise((resolve)=>{

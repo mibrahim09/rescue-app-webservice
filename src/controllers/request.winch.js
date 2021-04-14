@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const { WinchRequest } = require('../models/WinchRequest');
 const { Driver } = require('../models/winchDriver');
+const { Customer } = require('../models/customer');
 
 var mongoose = require('mongoose');
 var ReadyToAcceptRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
@@ -134,8 +135,11 @@ function acceptRide(requestId, driverId) {
     var ride = null;
     ride = ReadyToAcceptRides.get(requestId);
     ride.driverId = driverId;
+    customerId = ride.requesterId;
     ReadyToAcceptRides.delete(requestId);
-    AcceptedRides.set(requestId, ride);    // DICTIONARY --> KEY: RequestId, VAL: WinchRequest    
+    AcceptedRides.set(requestId, ride);         // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
+    ActiveDriverRides.set(driverId, requestId); // DICTIONARY --> KEY: DriverId, VAL: RequestId     
+    return customerId;
 }
 
 
@@ -163,7 +167,6 @@ async function handleDriverRequest(request,response) {
     Driverid=request.driver._id
         
     if (ActiveDriverRides.has(Driverid)) {
-
         var currentRequestid = Driverrequests.get(Driverid);
         return response.status(400).send({ "error": "You already have a ride", "requestId": currentRequestid });
         }
@@ -173,8 +176,6 @@ async function handleDriverRequest(request,response) {
         return response.status(400).send( "No clients requests now");
 
     }
-
-    
     const promise=rideinturn=>new Promise((resolve)=>{
 
         getDirections(inputs, function (result) {
@@ -217,7 +218,6 @@ async function handleDriverRequest(request,response) {
         }
 
     }
-    console.log(NearestRide)
     nearestRequestId = NearestRide[0];
     return response.status(200).send({"Nearest Ride: ":ReadyToAcceptRides.get(NearestRide[0])});
 }
@@ -232,19 +232,19 @@ async function handleDriverResponse(request,response) {
     driverId = request.driver._id;
     const driverResponse = request.body.driverResponse ;
     const requestId = nearestRequestId ;
+    if(requestId != "") {
+        if (driverResponse == "Accept") { 
+            const customerId = acceptRide(requestId, driverId);
+            let customer = await Customer.findOne({ _id: customerId });
+            return response.status(200).send({ "firstName": customer.firstName, "lastName": customer.lastName, "phoneNumber": customer.phoneNumber });
+        } 
+        else if (driverResponse == "Deny") {
+            return response.status(400).send("Later");
 
-    if (driverResponse == "Accept") { 
-        acceptRide(requestId, driverId);
-        return response.status(200).send("Done");
-    } 
-    else if (driverResponse == "Deny") {
-        return response.status(400).send("Later");
-
+        }
     }
-    else {
-        return response.status(400).send("Error");
-
-    }
+    else 
+        return response.status(400).send({"Error": "No Available Rides"});
       
 }
 
@@ -301,7 +301,7 @@ async function handleCheckRideStatus(request, response) {
 
     else if (status == RIDE_STATUS_ACCEPTED) {
         let driver = await Driver.findOne({ _id: myRide.driverId });
-        response.status(200).send({ "Status": status, "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
+        return response.status(200).send({ "Status": status, "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
         
     }
 }

@@ -13,6 +13,7 @@ function Init() {
 }
 
 const validateCustomerPhonePromise = request => new Promise(resolve => {
+    console.log(config.get('firebaseDatabase'));
     admin
         .auth()
         .getUser(request.body.fireBaseId)
@@ -30,6 +31,7 @@ const validateCustomerPhonePromise = request => new Promise(resolve => {
 
         })
         .catch((error) => {
+            console.log(error);
             return resolve("Invalid UserIdToken.");
         });
 

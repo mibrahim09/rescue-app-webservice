@@ -27,11 +27,13 @@ const userSchema = mongoose.Schema({
     isMobileVerified: Boolean
 });
 
-userSchema.methods.generateAuthToken = function () {
+userSchema.methods.generateAuthToken = function (verified) {
     const token = jwt.sign({
         _id: this._id,
-        firstName: this.firstName,
-        lastName: this.lastName
+        // firstName: this.firstName,
+        // lastName: this.lastName,
+        verified: verified,
+        user_type: "customer"
     }, config.get('jwtPrivateKey'));
     return token;
 }
@@ -55,7 +57,7 @@ async function createCustomerUser(request, response) {
     });
     try {
         const customerPromise = await customer.save();
-        const token = await customer.generateAuthToken();
+        const token = await customer.generateAuthToken(false);
         response.status(200).send({"token": token});
     }
     catch (ex) {

@@ -1,7 +1,7 @@
 const router = require("express").Router();
-const auth = require('../middleware/authnewdriver');
+const auth = require('../middleware/auth.driver.new');
 const driverHandler = require('../controllers/winchUser');
-const upload = require('../middleware/UploadDriverImage');
+const upload = require('../middleware/uploadimages.driver');
 
 // /api/winchDriver/
 router.post('/me/updateprofile',auth, async (req, res) => {

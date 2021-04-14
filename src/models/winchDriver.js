@@ -3,11 +3,12 @@ const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const mongoose = require('mongoose');
+const multer = require('multer');
 const { required } = require('joi');
 
 /*['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
-        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura', 
-        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 
+        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura',
+        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena',
         'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta']*/
 /*[
     'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة','بنها'
@@ -30,81 +31,38 @@ const driverSchema = mongoose.Schema({
     },
     firstName: {
         type: String,
-        required: function() { return this.isMobileVerified; },
+        required: function () { return this.isMobileVerified; },
         minlength: 2,
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
     lastName: {
         type: String,
-        required: function() { return this.isMobileVerified; },
+        required: function () { return this.isMobileVerified; },
         minlength: 3,
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
     winchPlates: {
         type: String,
-        required: function() { return this.isMobileVerified; },
+        required: function () { return this.isMobileVerified; },
         minlength: 4,
         maxlength: 7,
         match: /([0-9][ء-ي])|([ء-ي][0-9])/
     },
-    governorate:{
+    governorate: {
         type: String,
         enum: ['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
-        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura', 
-        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 
-        'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
-        'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة','بنها'
-        , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
-        'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
-        , 'اسيوط','اسوان', 'المنيا', 'بني سويف', 'الفيوم',
-        'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
-        required: function() { return this.isMobileVerified; }
+            'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura',
+            'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena',
+            'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
+            'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة', 'بنها'
+            , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
+            'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
+            , 'اسيوط', 'اسوان', 'المنيا', 'بني سويف', 'الفيوم',
+            'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
+        required: function () { return this.isMobileVerified; }
     },
-    /*locationsCovered:{
-        0: {
-            locations: [{
-                type: String, 
-                enum: ["Cairo Desert Road", "Cairo Agriculture Road"],
-                default: null
-                } ]
-            },
-        1: {
-            locations: [{
-                type: String, 
-                enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
-                default: null
-                } ]
-            }
-    },*/
-    
-    /*
-    locationsCovered:{
-         type: String, 
-         enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
-         validate: { validator : function() {
-                return this.city = 'Alexandria' ;
-         },
-         message : "Cairo doesn't have locations"
-        }
-    },*/
-    /*location: {
-        1: {
-            city: {
-                type: String,
-                value : 'Alexandria',
-                required: function() { return this.isMobileVerified; }
-
-                },
-            locationsCovered: {
-                type: [String], 
-                enum: ["Alexandria Desert Road", "Alexandria Agriculture Road", "North Coast"],
-                default: null
-                } 
-            }
-    },*/
-    
     personalPicture: { type: String },
     driverLicensePicture: { type: String },
     winchLicenseFrontPicture: { type: String },
@@ -112,15 +70,15 @@ const driverSchema = mongoose.Schema({
     driverCriminalRecordPicture: { type: String },
     driverDrugAnalysisPicture: { type: String },
     winchCheckReportPicture: { type: String },
-    
-    approvalState:{
+
+    approvalState: {
         type: Boolean,
         default: false
-    }, 
-    winchState:{
+    },
+    winchState: {
         type: String,
         //required: function() { return this.approvalState; },
-        enum: ['Offline','Idle','Busy'],
+        enum: ['Offline', 'Idle', 'Busy'],
         default: 'Offline'
     }
 });
@@ -132,7 +90,6 @@ driverSchema.methods.generateAuthToken = function () {
         lastName: this.lastName,
         winchPlates: this.winchPlates,
         governorate: this.governorate
-        //locationsCovered: this.locationsCovered
     }, config.get('jwtPrivateKey'));
     return token;
 }
@@ -154,7 +111,7 @@ driverSchema.methods.generateFinalAuthToken = function () {
     return token;
 }
 
-const Driver = mongoose.model('winch_users', driverSchema );
+const Driver = mongoose.model('winch_users', driverSchema);
 
 function validatePhone(request) {
     // Validation
@@ -171,14 +128,14 @@ async function createWinchUser(request, response) {
     });
     try {
         const driverPromise = await driver.save();
-        const token =  await driver.generateAuthToken();
-        response.status(200).send({"token": token});
+        const token = await driver.generateAuthToken();
+        response.status(200).send({ "token": token });
     }
     catch (ex) {
         response.status(400).send(ex.message);
     }
 }
-    
+
 module.exports = {
     Driver: Driver,
     createWinchUser: createWinchUser,

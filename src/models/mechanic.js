@@ -18,40 +18,40 @@ const mechanicSchema = mongoose.Schema({
     },
     firstName: {
         type: String,
-        required: function() { return this.isMobileVerified; },
+        required: function () { return this.isMobileVerified; },
         minlength: 2,
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
     lastName: {
         type: String,
-        required: function() { return this.isMobileVerified; },
+        required: function () { return this.isMobileVerified; },
         minlength: 3,
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
-    governorate:{
+    governorate: {
         type: String,
         enum: ['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
-        'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura', 
-        'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 
-        'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
-        'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة','بنها'
-        , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
-        'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
-        , 'اسيوط','اسوان', 'المنيا', 'بني سويف', 'الفيوم',
-        'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
-        required: function() { return this.isMobileVerified; }
+            'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura',
+            'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena',
+            'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
+            'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة', 'بنها'
+            , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
+            'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
+            , 'اسيوط', 'اسوان', 'المنيا', 'بني سويف', 'الفيوم',
+            'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
+        required: function () { return this.isMobileVerified; }
     },
     personalPicture: { type: String },
-    approvalState:{
+    approvalState: {
         type: Boolean,
         default: false
-    }, 
-    mechanicState:{
+    },
+    mechanicState: {
         type: String,
         //required: function() { return this.approvalState; },
-        enum: ['Offline','Idle','Busy'],
+        enum: ['Offline', 'Idle', 'Busy'],
         default: 'Offline'
     }
 });
@@ -75,7 +75,7 @@ mechanicSchema.methods.generateFinalAuthToken = function () {
     return token;
 }
 
-const Mechanic = mongoose.model('mechanic_users', mechanicSchema );
+const Mechanic = mongoose.model('mechanic_users', mechanicSchema);
 
 function validatePhone(request) {
     // Validation
@@ -92,14 +92,13 @@ async function createMechanicUser(request, response) {
     });
     try {
         const mechanicPromise = await mechanic.save();
-        const token =  await mechanic.generateAuthToken();
-        response.status(200).send({"token": token});
+        const token = await mechanic.generateAuthToken();
+        response.status(200).send({ "token": token });
     }
     catch (ex) {
         response.status(400).send(ex.message);
     }
 }
-    
 module.exports = {
     Mechanic: Mechanic,
     createMechanicUser: createMechanicUser,

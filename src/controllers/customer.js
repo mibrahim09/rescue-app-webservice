@@ -2,10 +2,11 @@ const firebase = require('../controllers/firebase');
 const configDB = require('../config');
 const Joi = require('joi');
 const _ = require('lodash');
+const mongoose = require('mongoose');
 //var mergeJSON = require("merge-json");
 //Joi.objectId = require('joi-objectid')(Joi);
 const { Customer, createCustomer, validatePhone } = require('../models/customer');
-
+const { Cars, createCar, validateCar } = require('../models/cars');
 
 async function handleCustomerRegisteration(request, response) {
 
@@ -24,10 +25,19 @@ async function handleCustomerRegisteration(request, response) {
 
     let user = await Customer.findOne({ phoneNumber: request.body.phoneNumber });
     if (user) {
+        verified = false;
+        if (user.firstName && user.lastName)
+            verified = true;
+        var result = await user.generateAuthToken(verified);
+        if (verified)
+            // USER ALREADY EXISTS and has a first or last name. Send them
+            return response.status(200).send({ "token": result, "firstName": user.firstName, "lastName": user.lastName });
+        else
+            // USER ALREADY EXISTS. ==> but no first or last name.
+            return response.status(200).send({ "token": result });
 
-        var result = await user.generateAuthToken();
-        return response.status(200).send({ "token": result }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     }
+
     // VALID USER.
     // TODO: SEND VERIFICATION NUMBER AND ACCESSTOKEN.
     await createCustomer(request, response);
@@ -59,8 +69,45 @@ async function handleUpdateData(request, response) {
                 new: true
             });
 
-        const newToken = await result.generateAuthToken();// NEW TOKEN with the first and last name set.
+        const newToken = await result.generateAuthToken(true);// NEW TOKEN with the first and last name set.
         response.status(200).send({ "token": newToken });
+    }
+    catch (ex) {
+        response.status(400).send({ "error": ex.message });
+    }
+
+}
+
+
+async function handleInsertCar(request, response) {
+
+    try {
+        const { error, value } = validateCar(request);
+        if (error) return response
+            .status(400)
+            .send({ "error": error.details[0].message });
+
+        await createCar(request, response);
+    }
+    catch (ex) {
+        response.status(400).send({ "error": ex.message });
+    }
+
+}
+
+async function getCars(request, response) {
+
+    try {
+        let result = await Cars.find({
+            'OwnerId': {
+                $in: [
+                    mongoose.Types.ObjectId(request.user._id)
+                ]
+            }
+        }, function (err, docs) {
+            console.log(docs);
+        });
+        response.status(200).send(result);
     }
     catch (ex) {
         response.status(400).send({ "error": ex.message });
@@ -84,5 +131,7 @@ function validateUpdateCustomer(request) {
 
 module.exports = {
     handleCustomerRegisteration: handleCustomerRegisteration,
-    handleUpdateData: handleUpdateData
+    handleUpdateData: handleUpdateData,
+    getCars: getCars,
+    handleInsertCar: handleInsertCar
 };

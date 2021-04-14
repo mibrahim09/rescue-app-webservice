@@ -3,6 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const config = require('config');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const configDB = require('./config');
 const firebase = require('./controllers/firebase');
 
@@ -16,7 +17,7 @@ if (!config.get('jwtPrivateKey')) {
 // ENABLE THE DEBUGGER
 debug.enabled = true;
 
-app.use( bodyParser.json() );  
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.urlencoded({ extended: true }));// parse application/x-www-form-urlencoded

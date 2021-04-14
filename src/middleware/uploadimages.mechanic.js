@@ -1,10 +1,10 @@
 const multer  = require('multer');
 const util = require("util");
-//const upload = multer({dest : 'images'});
+//const upload = multer({dest : 'Mechanic_Images'});
 
 const fileStorage = multer.diskStorage({
     destination : (req,file,cb) => {
-        cb(null,'images');
+        cb(null,'./images/MechanicImages');
     },
     filename : (req,file,cb) => {
         cb(null, new Date().toISOString().replace(/:/g, '-')  + '-' + file.originalname);
@@ -20,9 +20,7 @@ const upload = multer({
         if((!file.originalname.match(/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/))) return cb(new Error("File Format Is Incorrect !"));
         cb(null,true)
     }
-}).array("DriverImages",7);
-
-//.array("DriverImages",7);
+}).single("MechanicImage");
 
 var uploadFilesMiddleware = util.promisify(upload);
 module.exports = uploadFilesMiddleware;

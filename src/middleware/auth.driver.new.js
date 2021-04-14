@@ -6,10 +6,7 @@ module.exports = function (req, res, next) {
     if (!token) return res.status(401).send('Access denied. No token provided.');
     try {
         const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
-        if (!decoded.firstName || !decoded.lastName) {
-            return res.status(400).send('Bad token.');
-        }
-        req.user = decoded;
+        req.driver = decoded;
         next();
     }
     catch (ex) {

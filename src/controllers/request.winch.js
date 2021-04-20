@@ -167,7 +167,7 @@ async function handleDriverRequest(request,response) {
     Driverid=request.driver._id
         
     if (ActiveDriverRides.has(Driverid)) {
-        var currentRequestid = Driverrequests.get(Driverid);
+        var currentRequestid = ActiveDriverRides.get(Driverid);
         return response.status(400).send({ "error": "You already have a ride", "requestId": currentRequestid });
         }
 

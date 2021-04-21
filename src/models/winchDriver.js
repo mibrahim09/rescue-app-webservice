@@ -70,7 +70,14 @@ const driverSchema = mongoose.Schema({
     driverCriminalRecordPicture: { type: String },
     driverDrugAnalysisPicture: { type: String },
     winchCheckReportPicture: { type: String },
-
+    TotalStars: {
+        type: Number,
+        default: 0
+    },
+    TotalRides: {
+        type: Number,
+        default: 0
+    },
     approvalState: {
         type: Boolean,
         default: false
@@ -117,6 +124,32 @@ driverSchema.methods.generateFinalAuthToken = function (verified) {
 
 const Driver = mongoose.model('winch_users', driverSchema);
 
+
+async function insertStars(driverId, Stars, response) {
+
+    let user = await Driver.findOne({ _id: driverId });
+
+    if (!user) return response.status(400).send({
+        "error": "User doesn't exist."
+    });
+    try {
+
+        let result = await Driver.findOneAndUpdate(
+            { _id: driverId },// filter
+            { // updated data
+                TotalStars: user.TotalStars + Stars,
+                TotalRides: user.TotalRides + 1
+            },
+            {
+                new: true
+            });
+
+    }
+    catch (ex) {
+        return response.status(400).send({ "error": ex.message });
+    }
+
+}
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
@@ -143,5 +176,6 @@ async function createWinchUser(request, response) {
 module.exports = {
     Driver: Driver,
     createWinchUser: createWinchUser,
-    validatePhone: validatePhone
+    validatePhone: validatePhone,
+    insertDriverStars: insertStars
 };

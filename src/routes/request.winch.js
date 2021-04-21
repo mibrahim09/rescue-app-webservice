@@ -10,4 +10,8 @@ router.get('/checkstatus', auth, async (req, res) => {
     requestHandler.handleCheckRideStatus(req, res);
 });
 
+router.post('/Rate', auth, async (req, res) => {
+    requestHandler.handleCustomer2WinchRating(req, res);
+});
+
 module.exports = router;

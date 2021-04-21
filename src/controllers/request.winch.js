@@ -1,20 +1,23 @@
 const Joi = require('joi');
 const { WinchRequest } = require('../models/WinchRequest');
-const { Driver } = require('../models/winchDriver');
-const { Customer } = require('../models/customer');
+const { Driver, insertDriverStars } = require('../models/winchDriver');
+const { Customer, insertCustomerStars } = require('../models/customer');
 
 var mongoose = require('mongoose');
+const { inRange } = require('lodash');
 var ReadyToAcceptRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var AcceptedRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var ActiveCustomerRides = new Map();// DICTIONARY --> KEY: OwnerId, VAL: RequestId
 
-var ActiveDriverRides=new Map();// DICTIONARY --> KEY: DriverId, VAL: RequestId
-var DistancesMap=new Map();
+var ActiveDriverRides = new Map();// DICTIONARY --> KEY: DriverId, VAL: RequestId
+var DistancesMap = new Map();
 
 var nearestRequestId = "";
 
 const RIDE_STATUS_SEARCHING = 'SEARCHING';
 const RIDE_STATUS_ACCEPTED = 'ACCEPTED';
+const RIDE_STATUS_STARTED = 'STARTED';
+const RIDE_STATUS_COMPLETED = 'COMPLETED';
 const RIDE_STATUS_UNKNOWN = 'UNKNOWN';
 const RIDE_STATUS_TERMINATED = 'TERMINATED';
 
@@ -31,6 +34,21 @@ function validateNewRequest(request) {
         DropOffLocation_Long: Joi.string().required(),
         PickupLocation_Lat: Joi.string().required(),
         PickupLocation_Long: Joi.string().required()
+    });
+    return validationSchema.validate(request.body);
+}
+
+function validateEndRide(request) {
+    const validationSchema = Joi.object({
+        finalLocation_Lat: Joi.string().required(),
+        finalLocation_Long: Joi.string().required()
+    });
+    return validationSchema.validate(request.body);
+}
+
+function validateRating(request) {
+    const validationSchema = Joi.object({
+        Stars: Joi.number().max(5).min(1).required()
     });
     return validationSchema.validate(request.body);
 }
@@ -74,9 +92,181 @@ function getRideStatus(requestId) {
         return RIDE_STATUS_ACCEPTED;
     return RIDE_STATUS_UNKNOWN;
 }
-/*
 
-*/
+function getRide(requestId) {
+    var ride = ReadyToAcceptRides.get(requestId);
+    if (ride == null) {
+        ride = AcceptedRides.get(requestId);
+    }
+    return ride;
+
+}
+
+
+async function handleCustomer2WinchRating(request, response) {
+
+    // Validate the input must have the finish location.
+    const { error, value } = validateRating(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+
+    const customerId = request.user._id;
+
+    // Get the Request Id from ActiveCustomerRides
+    var currentRequestId = ActiveCustomerRides.get(customerId);
+    if (currentRequestId == null) {
+        return response.status(400).send({ "error": "You dont have any active rides." });
+    }
+
+
+    // Get the Ride Object
+    var ride = getRide(currentRequestId);
+    if (ride.Status == RIDE_STATUS_COMPLETED) {
+
+        if (ride.WAITING_FOR_CUSTOMER_RATING) {
+            ride.WAITING_FOR_CUSTOMER_RATING = false;
+            console.log(ride);
+            await insertDriverStars(ride.driverId, request.body.Stars, response);// Inserting the stars inside the customerDb.
+
+            ActiveCustomerRides.delete(customerId);//Remove the customerId from ActiveCustomerRides
+
+            if (!ride.WAITING_FOR_DRIVER_RATING && !ride.WAITING_FOR_CUSTOMER_RATING)
+                AcceptedRides.delete(currentRequestId);
+
+            return response.status(200).send({
+                "msg": "Rated Successfully"
+            });
+
+        }
+        else {
+            return response.status(400).send({
+                "error": "You have already rated!"
+            });
+        }
+
+    }
+    else {
+        return response.status(400).send({
+            "error": "You cant rate this ride unless it ends.",
+            "status": ride.Status
+        });
+    }
+
+}
+
+
+async function handleWinch2CustomerRating(request, response) {
+
+    // Validate the input must have the finish location.
+    const { error, value } = validateRating(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+
+    const driverId = request.driver._id;
+
+
+    // Get the Request Id from ActiveDriverRides
+    var currentRequestId = ActiveDriverRides.get(driverId);
+    if (currentRequestId == null) {
+        return response.status(400).send({ "error": "You dont have any active rides." });
+    }
+
+    // Get the Ride Object
+    var ride = getRide(currentRequestId);
+    if (ride.Status == RIDE_STATUS_COMPLETED) {
+
+        if (ride.WAITING_FOR_DRIVER_RATING) {
+            ride.WAITING_FOR_DRIVER_RATING = false;
+
+            await insertCustomerStars(ride.requesterId, request.body.Stars, response);// Inserting the stars inside the customerDb.
+
+            ActiveDriverRides.delete(driverId);//Remove the DriverId from ActiveDriverRides
+
+            if (!ride.WAITING_FOR_DRIVER_RATING && !ride.WAITING_FOR_CUSTOMER_RATING)
+                AcceptedRides.delete(currentRequestId);
+
+            return response.status(200).send({
+                "msg": "Rated Successfully"
+            });
+
+        }
+        else {
+            return response.status(400).send({
+                "error": "You have already rated!"
+            });
+        }
+
+    }
+    else {
+        return response.status(400).send({
+            "error": "You cant rate this ride unless it ends.",
+            "status": ride.Status
+        });
+    }
+
+}
+
+
+async function handleEndRide(request, response) {
+
+    // Validate the input must have the finish location.
+    const { error, value } = validateEndRide(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+
+    const driverId = request.driver._id;
+
+    const finalLocation = { lat: request.body.finalLocation_Lat, lng: request.body.finalLocation_Long };
+
+    // Get the Request Id from ActiveDriverRides
+    var currentRequestId = ActiveDriverRides.get(driverId);
+    if (currentRequestId == null) {
+        return response.status(400).send({ "error": "You dont have any active rides." });
+    }
+
+    // Get the Ride Object
+    var ride = getRide(currentRequestId);
+    if (ride != null) {
+        if (ride.Status == RIDE_STATUS_STARTED) {
+            ride.setStatus(RIDE_STATUS_COMPLETED);// Change status to completed
+            // Set the values for the finish
+            ride.finalLocation = finalLocation;
+            ride.FinishTimeStamp = Date.now();
+            ride.WAITING_FOR_DRIVER_RATING = ride.WAITING_FOR_CUSTOMER_RATING = true;
+            // Get the fare
+            var fare = ride.CalcuateFare();
+
+            // Save the Ride to Logs.
+            ride.AddLogsToDb();
+
+            return response.status(200).send(
+                {
+                    "STATUS": ride.Status,
+                    "Fare": ride.Fare,
+                    "TotalTimeForTrip": ride.getFinishETA()
+                });
+        }
+        else return response.status(400).send({
+            "error": "You can only end a started ride.",
+            "status": ride.Status
+        });
+
+    }
+    else {
+        return response.status(400).send({
+            "error": "There is no active ride"
+        });
+    }
+
+}
+
+
 async function handleCustomerNewRequest(request, response) {
     // Validate the Input
     const { error, value } = validateNewRequest(request);
@@ -92,9 +282,14 @@ async function handleCustomerNewRequest(request, response) {
     // Check if this customer has an active request?
     // ActiveCustomerRides ==> Contains if the customer has an active ride. So he cant order 2 rides at the same time. 
     // Map<key: CustomerId, Value: RequestId>
-    if (ActiveCustomerRides.has(customerId)) {
-        var currentRequestId = ActiveCustomerRides.get(customerId);
-        return response.status(400).send({ "error": "This customer has already an active ride.", "status": getRideStatus(currentRequestId), "requestId": currentRequestId });
+    var currentRequestId = ActiveCustomerRides.get(customerId);
+    if (currentRequestId != null) {
+        //var currentRequestId = ActiveCustomerRides.get(customerId);
+        var ride = getRide(currentRequestId);
+        if (ride.Status == RIDE_STATUS_COMPLETED)
+            return response.status(400).send({ "error": "You need to rate the previous ride before moving to another.", "status": ride.Status, "requestId": currentRequestId });
+        else
+            return response.status(400).send({ "error": "This customer has already an active ride.", "status": ride.Status, "requestId": currentRequestId });
     }
 
     // Customer doesnt have any active rides.
@@ -105,41 +300,35 @@ async function handleCustomerNewRequest(request, response) {
 
     // Generate New Request Object Constructor: CutomerId, Pickuplocation, DropOffLocation
     let newRequest = new WinchRequest(customerId, pickUpLocation, dropOffLocation, null);
+    newRequest.setStatus(RIDE_STATUS_SEARCHING);
     // Map <key: RequestId, Value: RequestObject>
     ReadyToAcceptRides.set(requestId, newRequest);
 
     // Response sent to the server (Status, RequestId)
-    response.status(200).send({ "status": RIDE_STATUS_SEARCHING, "requestId": requestId });// So the app can send a request asking about it every 30 seconds.
-
-
-    // var inputs = {
-    //     origin: [currentLocation],
-    //     destination: [pickUpLocation]
-    // };
-
-    // getDirections(inputs, function (result) {
-
-    //     try {
-    //         console.log(result.json.rows[0]);
-    //         response.status(200).send({
-    //             "distance": result.json.rows[0].elements[0].distance.text,
-    //             "duration": result.json.rows[0].elements[0].duration.text
-    //         });
-    //     }
-    //     catch (ex) { console.log(ex); }
-
-    // });
+    response.status(200).send({ "status": newRequest.Status, "requestId": requestId });// So the app can send a request asking about it every 30 seconds.
 }
 
 function acceptRide(requestId, driverId) {
     var ride = null;
     ride = ReadyToAcceptRides.get(requestId);
+    ride.setStatus(RIDE_STATUS_ACCEPTED);
     ride.driverId = driverId;
     customerId = ride.requesterId;
     ReadyToAcceptRides.delete(requestId);
     AcceptedRides.set(requestId, ride);         // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
     ActiveDriverRides.set(driverId, requestId); // DICTIONARY --> KEY: DriverId, VAL: RequestId     
     return customerId;
+}
+
+async function dummyStart(request, response) {
+    var ride = null;
+    var requestId = ActiveDriverRides.get(request.driver._id);
+    ride = AcceptedRides.get(requestId);
+    ride.StartedTimeStamp = Date.now();
+    ride.setStatus(RIDE_STATUS_STARTED);
+    return response.send({
+        "status": ride.Status
+    })
 }
 
 
@@ -155,7 +344,7 @@ function getMilliSeconds(minutes) {
     return minutes * 60 * 1000;
 }
 
-async function handleDriverRequest(request,response) {
+async function handleDriverRequest(request, response) {
 
     const { error, value } = validateDriverRequest(request);
     if (error) return response
@@ -163,66 +352,70 @@ async function handleDriverRequest(request,response) {
         .send({ "error": error.details[0].message });
 
     const driverLocation = { lat: request.body.Location_Lat, lng: request.body.Location_Long };
-    
-    Driverid=request.driver._id
-        
-    if (ActiveDriverRides.has(Driverid)) {
-        var currentRequestid = ActiveDriverRides.get(Driverid);
-        return response.status(400).send({ "error": "You already have a ride", "requestId": currentRequestid });
-        }
 
-    
-    if (ReadyToAcceptRides.size==0){
-        return response.status(400).send( { "error": "No client requests now"});
+    Driverid = request.driver._id
 
+    var currentRequestId = ActiveDriverRides.get(Driverid);
+    if (currentRequestId != null) {
+        var ride = getRide(currentRequestId);
+        if (ride.Status == RIDE_STATUS_COMPLETED)
+            return response.status(400).send({ "error": "You need to rate the previous ride before moving to another.", "status": ride.Status, "requestId": currentRequestId });
+        else
+            return response.status(400).send({ "error": "You already have an active ride.", "status": ride.Status, "requestId": currentRequestId });
     }
-    const promise=rideinturn=>new Promise((resolve)=>{
+
+    if (ReadyToAcceptRides.size == 0) {
+        return response.status(400).send({ "error": "No client requests now" });
+    }
+    const promise = rideinturn => new Promise((resolve) => {
 
         getDirections(inputs, function (result) {
-        
-            try {
-                //console.log(rideinturn);
-                Distance=result.json.rows[0].elements[0].distance.text,
-                Duration=result.json.rows[0].elements[0].duration.text
-                //console.log(rideinturn[0])
-                DistancesMap.set(rideinturn[0],Distance)
-                resolve(Distance)
-                //return response.status(400).send( "ok");
 
+            try {
+                Distance = result.json.rows[0].elements[0].distance.text,
+                    Duration = result.json.rows[0].elements[0].duration.text
+                DistancesMap.set(rideinturn[0], Distance)
+                resolve(Distance)
             }
             catch (ex) { console.log(ex); }
-            
-                    });});
 
-    // const iterator1 = ReadyToAcceptRides.entries();
-    // rideinturn=iterator1.next().value 
-    RideInTurn=[]
-    var inputs              
-   
-    for (let RideInTurn of ReadyToAcceptRides.entries()){
+        });
+    });
+
+
+    RideInTurn = []
+    var inputs
+
+    for (let RideInTurn of ReadyToAcceptRides.entries()) {
         inputs = {
 
             origin: [driverLocation],
             destination: [RideInTurn[1].pickupLocation]
-                    };
+        };
         await promise(RideInTurn)
-        
-            }
 
-    
+    }
+
+
     //console.log(Distances.values());
-    NearestRide=DistancesMap.entries().next().value
-    for (let dist of DistancesMap.entries()){
-        if(dist[1]<NearestRide[1]){
-            NearestRide=dist
+    NearestRide = DistancesMap.entries().next().value
+    for (let dist of DistancesMap.entries()) {
+        if (dist[1] < NearestRide[1]) {
+            NearestRide = dist
         }
 
     }
     nearestRequestId = NearestRide[0];
-    return response.status(200).send({"Nearest Ride: ":ReadyToAcceptRides.get(NearestRide[0])});
+    return response.status(200).send({ "Nearest Ride: ": ReadyToAcceptRides.get(NearestRide[0]) });
+
+    // FOR TESTING.
+    // nearestRequestId = ReadyToAcceptRides.keys().next().value;
+    // return response.status(200).send({ "Nearest Ride: ": ReadyToAcceptRides.get(nearestRequestId) });
+
 }
 
-async function handleDriverResponse(request,response) {
+
+async function handleDriverResponse(request, response) {
 
     const { error, value } = validateDriverResponse(request);
     if (error) return response
@@ -230,22 +423,22 @@ async function handleDriverResponse(request,response) {
         .send({ "error": error.details[0].message });
 
     driverId = request.driver._id;
-    const driverResponse = request.body.driverResponse ;
-    const requestId = nearestRequestId ;
-    if(requestId != "") {
-        if (driverResponse == "Accept") { 
+    const driverResponse = request.body.driverResponse;
+    const requestId = nearestRequestId;
+    if (requestId != "") {
+        if (driverResponse == "Accept") {
             const customerId = acceptRide(requestId, driverId);
             let customer = await Customer.findOne({ _id: customerId });
             return response.status(200).send({ "firstName": customer.firstName, "lastName": customer.lastName, "phoneNumber": customer.phoneNumber });
-        } 
+        }
         else if (driverResponse == "Deny") {
             return response.status(400).send("Later");
 
         }
     }
-    else 
-        return response.status(400).send({"Error": "No Available Rides"});
-      
+    else
+        return response.status(400).send({ "Error": "No Available Rides" });
+
 }
 
 
@@ -261,19 +454,11 @@ async function handleCheckRideStatus(request, response) {
     // Get Request Id from ActiveCustomerRides
     // ActiveCustomersRides : Map<Key: CustomerId, Value: RequestId>
     const requestId = ActiveCustomerRides.get(customerId);
-    var myRide = null;
-    var status = RIDE_STATUS_UNKNOWN;
+    var myRide = getRide(requestId);
+    var status = myRide.Status;
     // If ReadyToAcceptRides has this Request
     // Set Status = Searching
     // myRide = Request Object from ReadyToAcceptRides
-    if (ReadyToAcceptRides.has(requestId)) {
-        myRide = ReadyToAcceptRides.get(requestId);
-        status = RIDE_STATUS_SEARCHING;
-    } 
-    else if (AcceptedRides.has(requestId)) {
-        myRide = AcceptedRides.get(requestId);
-        status = RIDE_STATUS_ACCEPTED;
-    }
 
     if (myRide == null)
         return response.status(400).send({ "error": "Unknown error occured. Ride is null." });
@@ -292,17 +477,19 @@ async function handleCheckRideStatus(request, response) {
         }
         response.status(200).send({ "Status": status, "Scope": myRide.searchScope });
     }
-    // console.log((Date.now() - myRide.creationTimeStamp) / 1000);
-
-
-    // let newRequest = new WinchRequest(customerId, pickUpLocation, currentLocation);
-    // ReadyToAcceptRides.set(requestId, newRequest);
-    // response.status(200).send({ "status": "searching", "requestId": requestId });// So the app can send a request asking about it every 30 seconds.
-
-    else if (status == RIDE_STATUS_ACCEPTED) {
+    else {
         let driver = await Driver.findOne({ _id: myRide.driverId });
-        return response.status(200).send({ "Status": status, "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
-        
+        if (status == RIDE_STATUS_ACCEPTED || status == RIDE_STATUS_STARTED) {
+            return response.status(200).send({ "Status": status, "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
+        }
+        else {// COMPLETED
+            return response.status(200).send({
+                "Status": status,
+                "winchPlates": driver.winchPlates,
+                "TripTime": myRide.getFinishETA()
+            });
+
+        }
     }
 }
 
@@ -311,5 +498,9 @@ module.exports = {
     handleCustomerNewRequest: handleCustomerNewRequest,
     handleCheckRideStatus: handleCheckRideStatus,
     handleDriverRequest: handleDriverRequest,
-    handleDriverResponse: handleDriverResponse
+    handleDriverResponse: handleDriverResponse,
+    handleEndRide: handleEndRide,
+    handleWinch2CustomerRating: handleWinch2CustomerRating,
+    handleCustomer2WinchRating: handleCustomer2WinchRating,
+    dummyStart: dummyStart
 };

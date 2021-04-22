@@ -81,7 +81,7 @@ const driverSchema = mongoose.Schema({
     balance: {
         type: Number,
         default : 0,
-        set: function (v) { return Math.round(v) ;}
+        set: function (v) { return Math.round(v) ;} //Not Tested Yet
     },
     approvalState: {
         type: Boolean,

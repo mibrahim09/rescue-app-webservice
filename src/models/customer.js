@@ -24,6 +24,19 @@ const userSchema = mongoose.Schema({
         length: 13,
         unique: true
     },
+    TotalStars: {
+        type: Number,
+        default: 0
+    },
+    TotalRides: {
+        type: Number,
+        default: 0
+    },
+    wallet: {
+        type: Number,
+        default : 0,
+        set: function (v) { return Math.round(v) ;}
+    },
     isMobileVerified: Boolean
 });
 
@@ -50,6 +63,32 @@ function validatePhone(request) {
 
 }
 
+async function insertStars(customerId, Stars, response) {
+
+    let user = await Customer.findOne({ _id: customerId });
+
+    if (!user) return response.status(400).send({
+        "error": "User doesn't exist."
+    });
+
+    try {
+
+        let result = await Customer.findOneAndUpdate(
+            { _id: customerId },// filter
+            { // updated data
+                TotalStars: user.TotalStars + Stars,
+                TotalRides: user.TotalRides + 1
+            },
+            {
+                new: true
+            });
+
+    }
+    catch (ex) {
+        return response.status(400).send({ "error": ex.message });
+    }
+
+}
 
 async function createCustomerUser(request, response) {
     const customer = new Customer({
@@ -58,7 +97,7 @@ async function createCustomerUser(request, response) {
     try {
         const customerPromise = await customer.save();
         const token = await customer.generateAuthToken(false);
-        response.status(200).send({"token": token});
+        response.status(200).send({ "token": token });
     }
     catch (ex) {
         response.status(400).send(ex.message);
@@ -68,5 +107,6 @@ async function createCustomerUser(request, response) {
 module.exports = {
     Customer: Customer,
     createCustomer: createCustomerUser,
-    validatePhone: validatePhone
+    validatePhone: validatePhone,
+    insertCustomerStars: insertStars
 };

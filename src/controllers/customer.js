@@ -22,7 +22,6 @@ async function handleCustomerRegisteration(request, response) {
         });
     }
 
-
     let user = await Customer.findOne({ phoneNumber: request.body.phoneNumber });
     if (user) {
         verified = false;

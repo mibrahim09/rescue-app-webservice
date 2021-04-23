@@ -94,6 +94,10 @@ function getRideStatus(requestId) {
     return RIDE_STATUS_UNKNOWN;
 }
 
+function getMilliSeconds(minutes) {
+    return minutes * 60 * 1000;
+}
+
 function getRide(requestId) {
     var ride = ReadyToAcceptRides.get(requestId);
     if (ride == null) {
@@ -342,10 +346,6 @@ function terminateRide(requestId, customerId) {
     }
 }
 
-function getMilliSeconds(minutes) {
-    return minutes * 60 * 1000;
-}
-
 async function handleDriverRequest(request, response) {
 
     const { error, value } = validateDriverRequest(request);
@@ -485,7 +485,7 @@ async function handleCancelRide(request, response) {
             let customer = await Customer.findOne({ _id: customerId });
             let driver = await Driver.findOne({ _id: driverId });
             console.log(driverId);
-            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(10)) {
+            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(2)) {
                 const customerFine = customer.wallet - 10;
                 let customerResult = await Customer.findOneAndUpdate(
                     { _id: customerId },
@@ -504,14 +504,24 @@ async function handleCancelRide(request, response) {
                     {
                         new: true
                     });
-            }
                 AcceptedRides.delete(requestId); 
                 ActiveDriverRides.delete(driverId);
                 return response.status(200).send({ 
                     "Status": 'CANCELLED', 
+                    "driverBalance": driverResult.balance,
+                    "customerWallet": customerResult.wallet
+                });
+            }
+            else {
+                AcceptedRides.delete(requestId); 
+                ActiveDriverRides.delete(driverId);
+                return response.status(200).send({ 
+                    "Status": 'CANCELLED', 
+                    "Details": 'No Fine Applied',
                     "driverBalance": driver.balance,
                     "customerWallet": customer.wallet
                 });
+            }
         }
         else 
         {

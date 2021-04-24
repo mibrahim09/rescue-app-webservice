@@ -23,13 +23,18 @@
     "debug": "^4.3.1",
     "express": "^4.17.1",
     "firebase-admin": "^9.4.2",
+<<<<<<< HEAD
+    "google-translate": "^3.0.0",
+=======
     "google-maps": "^4.3.3",
+>>>>>>> b3dca53201f75144caedd9be75985b7e1908c1b7
     "joi": "^17.3.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
     "mongoose": "^5.11.12",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
-    "sequelize-msnodesqlv8": "^0.2.6-beta.8"
+    "sequelize-msnodesqlv8": "^0.2.6-beta.8",
+    "translatte": "^3.0.0"
   }
 }

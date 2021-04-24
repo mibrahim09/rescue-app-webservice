@@ -56,8 +56,8 @@ const Customer = mongoose.model('customers_users', userSchema);
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required()
-        //fireBaseId: Joi.string().required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
+        fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 

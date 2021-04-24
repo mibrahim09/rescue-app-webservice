@@ -11,6 +11,7 @@ class WinchRequest {
     Status = "";
 
     driverId = null;
+
     locationLat = null;
     locationLong = null;
 
@@ -23,6 +24,11 @@ class WinchRequest {
 
     setStatus(status) {
         this.Status = status;
+    }
+
+    updateDriverLocation(location_Lat, location_Long) {
+        this.locationLat = location_Lat;
+        this.locationLong = location_Long;
     }
 
     CalcuateFare() {

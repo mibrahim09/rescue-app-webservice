@@ -429,14 +429,14 @@ async function handleUpdateDriverLocation (request, response) {
     let driverId = request.driver._id;
 
     var currentRequestId = ActiveDriverRides.get(driverId);
-
-    if (currentRequestId != null) {
-        currentRequestId.locationLat = lat;
-        currentRequestId.locationLong = long;
-        return response.status(200).send({"Done": "Your Location has been Updated Successfully"});  
-    }
-    else
+    if (currentRequestId == null) 
         return response.status(400).send({ "error": "You don't have an active ride."});
+
+    var ride = getRide(currentRequestId);
+    if (ride != null) {
+        ride.updateDriverLocation(lat, long);
+        return response.status(200).send({"Done": "Your Location has been Updated Successfully"}); 
+    }
 
 }
 

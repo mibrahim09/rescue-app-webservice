@@ -78,6 +78,11 @@ const driverSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
+    balance: {
+        type: Number,
+        default: 0,
+        set: function (v) { return Math.round(v); } //Not Tested Yet
+    },
     approvalState: {
         type: Boolean,
         default: false
@@ -153,8 +158,8 @@ async function insertStars(driverId, Stars, response) {
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
-        fireBaseId: Joi.string().required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required()
+        //fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 

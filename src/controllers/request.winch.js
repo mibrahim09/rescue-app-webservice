@@ -93,6 +93,10 @@ function getRideStatus(requestId) {
     return RIDE_STATUS_UNKNOWN;
 }
 
+function getMilliSeconds(minutes) {
+    return minutes * 60 * 1000;
+}
+
 function getRide(requestId) {
     var ride = ReadyToAcceptRides.get(requestId);
     if (ride == null) {
@@ -313,6 +317,7 @@ function acceptRide(requestId, driverId) {
     ride = ReadyToAcceptRides.get(requestId);
     ride.setStatus(RIDE_STATUS_ACCEPTED);
     ride.driverId = driverId;
+    ride.acceptedStamp = Date.now();
     customerId = ride.requesterId;
     ReadyToAcceptRides.delete(requestId);
     AcceptedRides.set(requestId, ride);         // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
@@ -338,10 +343,6 @@ function terminateRide(requestId, customerId) {
         ReadyToAcceptRides.delete(requestId);
         ActiveCustomerRides.delete(customerId);
     }
-}
-
-function getMilliSeconds(minutes) {
-    return minutes * 60 * 1000;
 }
 
 async function handleDriverRequest(request, response) {
@@ -414,6 +415,30 @@ async function handleDriverRequest(request, response) {
 
 }
 
+async function handleUpdateDriverLocation(request, response) {
+
+    const { error, value } = validateDriverRequest(request);
+    if (error) return response
+        .status(400)
+        .send({ "error": error.details[0].message });
+
+    const lat = request.body.Location_Lat;
+    const long = request.body.Location_Long;
+
+    let driverId = request.driver._id;
+
+    var currentRequestId = ActiveDriverRides.get(driverId);
+
+    if (currentRequestId != null) {
+        currentRequestId.locationLat = lat;
+        currentRequestId.locationLong = long;
+        return response.status(200).send({ "Done": "Your Location has been Updated Successfully" });
+    }
+    else
+        return response.status(400).send({ "error": "You don't have an active ride." });
+
+}
+
 
 async function handleDriverResponse(request, response) {
 
@@ -432,13 +457,78 @@ async function handleDriverResponse(request, response) {
             return response.status(200).send({ "firstName": customer.firstName, "lastName": customer.lastName, "phoneNumber": customer.phoneNumber });
         }
         else if (driverResponse == "Deny") {
-            return response.status(400).send("Later");
+            return response.status(200).send("Later");
 
         }
     }
     else
         return response.status(400).send({ "Error": "No Available Rides" });
 
+}
+
+async function handleCancelRide(request, response) {
+    // Get CustomerId from JWT Token
+    const customerId = request.user._id;
+    // Check if this customer has an active request?
+    if (!ActiveCustomerRides.has(customerId)) {
+        return response.status(400).send({ "error": "You dont have any active rides." });
+    }
+    const requestId = ActiveCustomerRides.get(customerId);
+    var status = getRideStatus(requestId);
+    if ((status == RIDE_STATUS_SEARCHING) || (status == RIDE_STATUS_ACCEPTED)) {
+        ActiveCustomerRides.delete(customerId);
+        if (status == RIDE_STATUS_ACCEPTED) {
+            //var ride = null;
+            ride = AcceptedRides.get(requestId);
+            driverId = ride.driverId;
+            let customer = await Customer.findOne({ _id: customerId });
+            let driver = await Driver.findOne({ _id: driverId });
+            console.log(driverId);
+            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(2)) {
+                const customerFine = customer.wallet - 10;
+                let customerResult = await Customer.findOneAndUpdate(
+                    { _id: customerId },
+                    { // updated data
+                        wallet: customerFine
+                    },
+                    {
+                        new: true
+                    });
+                const driverBonus = driver.balance + 10;
+                let driverResult = await Driver.findOneAndUpdate(
+                    { _id: driverId },
+                    {
+                        balance: driverBonus
+                    },
+                    {
+                        new: true
+                    });
+                AcceptedRides.delete(requestId);
+                ActiveDriverRides.delete(driverId);
+                return response.status(200).send({
+                    "Status": 'CANCELLED',
+                    "driverBalance": driverResult.balance,
+                    "customerWallet": customerResult.wallet
+                });
+            }
+            else {
+                AcceptedRides.delete(requestId);
+                ActiveDriverRides.delete(driverId);
+                return response.status(200).send({
+                    "Status": 'CANCELLED',
+                    "Details": 'No Fine Applied',
+                    "driverBalance": driver.balance,
+                    "customerWallet": customer.wallet
+                });
+            }
+        }
+        else {
+            ReadyToAcceptRides.delete(requestId);
+            return response.status(200).send({ "Status": 'CANCELLED' });
+        }
+    }
+    else
+        return response.status(400).send({ "error": "You Can't Cancel This Ride." });
 }
 
 
@@ -480,7 +570,7 @@ async function handleCheckRideStatus(request, response) {
     else {
         let driver = await Driver.findOne({ _id: myRide.driverId });
         if (status == RIDE_STATUS_ACCEPTED || status == RIDE_STATUS_STARTED) {
-            return response.status(200).send({ "Status": status, "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
+            return response.status(200).send({ "Status": status, "Time Passed": ((Date.now() - myRide.acceptedStamp) / (1000 * 60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
         }
         else {// COMPLETED
             return response.status(200).send({
@@ -499,6 +589,8 @@ module.exports = {
     handleCheckRideStatus: handleCheckRideStatus,
     handleDriverRequest: handleDriverRequest,
     handleDriverResponse: handleDriverResponse,
+    handleUpdateDriverLocation: handleUpdateDriverLocation,
+    handleCancelRide: handleCancelRide,
     handleEndRide: handleEndRide,
     handleWinch2CustomerRating: handleWinch2CustomerRating,
     handleCustomer2WinchRating: handleCustomer2WinchRating,

@@ -2,17 +2,22 @@ class WinchRequest {
     searchScope = 5;// Intial value
     creationTimeStamp = Date.now();
     lastScopeIncrease = Date.now();
+    acceptedStamp = null;
     FinishTimeStamp = Date.now();
     StartedTimeStamp = Date.now();
     Fare = 0.0;
     WAITING_FOR_DRIVER_RATING = false;
     WAITING_FOR_CUSTOMER_RATING = false;
     Status = "";
+
+    driverId = null;
+    locationLat = null;
+    locationLong = null;
+
     constructor(requesterId, pickupLocation, dropOffLocation, driverId) {
         this.pickupLocation = pickupLocation;
         this.dropOffLocation = dropOffLocation;
         this.requesterId = requesterId;
-        this.driverId = driverId;
     }
 
 

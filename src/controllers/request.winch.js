@@ -5,7 +5,6 @@ const { Customer, insertCustomerStars } = require('../models/customer');
 
 var mongoose = require('mongoose');
 const { inRange } = require('lodash');
-
 var ReadyToAcceptRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var AcceptedRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var ActiveCustomerRides = new Map();// DICTIONARY --> KEY: OwnerId, VAL: RequestId
@@ -416,7 +415,7 @@ async function handleDriverRequest(request, response) {
 
 }
 
-async function handleUpdateDriverLocation (request, response) {
+async function handleUpdateDriverLocation(request, response) {
 
     const { error, value } = validateDriverRequest(request);
     if (error) return response
@@ -432,11 +431,21 @@ async function handleUpdateDriverLocation (request, response) {
     if (currentRequestId == null) 
         return response.status(400).send({ "error": "You don't have an active ride."});
 
+<<<<<<< HEAD
     var ride = getRide(currentRequestId);
     if (ride != null) {
         ride.updateDriverLocation(lat, long);
         return response.status(200).send({"Done": "Your Location has been Updated Successfully"}); 
     }
+=======
+    if (currentRequestId != null) {
+        currentRequestId.locationLat = lat;
+        currentRequestId.locationLong = long;
+        return response.status(200).send({ "Done": "Your Location has been Updated Successfully" });
+    }
+    else
+        return response.status(400).send({ "error": "You don't have an active ride." });
+>>>>>>> b3dca53201f75144caedd9be75985b7e1908c1b7
 
 }
 
@@ -476,9 +485,9 @@ async function handleCancelRide(request, response) {
     }
     const requestId = ActiveCustomerRides.get(customerId);
     var status = getRideStatus(requestId);
-    if ((status == RIDE_STATUS_SEARCHING) || (status == RIDE_STATUS_ACCEPTED)){
+    if ((status == RIDE_STATUS_SEARCHING) || (status == RIDE_STATUS_ACCEPTED)) {
         ActiveCustomerRides.delete(customerId);
-        if (status == RIDE_STATUS_ACCEPTED){
+        if (status == RIDE_STATUS_ACCEPTED) {
             //var ride = null;
             ride = AcceptedRides.get(requestId);
             driverId = ride.driverId;
@@ -490,7 +499,7 @@ async function handleCancelRide(request, response) {
                 let customerResult = await Customer.findOneAndUpdate(
                     { _id: customerId },
                     { // updated data
-                        wallet : customerFine
+                        wallet: customerFine
                     },
                     {
                         new: true
@@ -504,33 +513,32 @@ async function handleCancelRide(request, response) {
                     {
                         new: true
                     });
-                AcceptedRides.delete(requestId); 
+                AcceptedRides.delete(requestId);
                 ActiveDriverRides.delete(driverId);
-                return response.status(200).send({ 
-                    "Status": 'CANCELLED', 
+                return response.status(200).send({
+                    "Status": 'CANCELLED',
                     "driverBalance": driverResult.balance,
                     "customerWallet": customerResult.wallet
                 });
             }
             else {
-                AcceptedRides.delete(requestId); 
+                AcceptedRides.delete(requestId);
                 ActiveDriverRides.delete(driverId);
-                return response.status(200).send({ 
-                    "Status": 'CANCELLED', 
+                return response.status(200).send({
+                    "Status": 'CANCELLED',
                     "Details": 'No Fine Applied',
                     "driverBalance": driver.balance,
                     "customerWallet": customer.wallet
                 });
             }
         }
-        else 
-        {
+        else {
             ReadyToAcceptRides.delete(requestId);
-            return response.status(200).send({"Status": 'CANCELLED'});
-        }  
+            return response.status(200).send({ "Status": 'CANCELLED' });
+        }
     }
     else
-        return response.status(400).send({ "error": "You Can't Cancel This Ride." });      
+        return response.status(400).send({ "error": "You Can't Cancel This Ride." });
 }
 
 
@@ -572,7 +580,7 @@ async function handleCheckRideStatus(request, response) {
     else {
         let driver = await Driver.findOne({ _id: myRide.driverId });
         if (status == RIDE_STATUS_ACCEPTED || status == RIDE_STATUS_STARTED) {
-            return response.status(200).send({ "Status": status, "Time Passed": ((Date.now()-myRide.acceptedStamp)/(1000*60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
+            return response.status(200).send({ "Status": status, "Time Passed": ((Date.now() - myRide.acceptedStamp) / (1000 * 60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates });
         }
         else {// COMPLETED
             return response.status(200).send({

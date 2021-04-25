@@ -31,7 +31,7 @@ async function handleWinchDriverRegisteration(request, response) {
         var result = await driver.generateFinalAuthToken(verified);
         if (verified)
             // USER ALREADY EXISTS and has a first or last name. Send them
-            return response.status(200).send({ "token": result, "firstName": driver.firstName, "lastName": driver.lastName, "winchPlates": driver.winchPlates });
+            return response.status(200).send({ "token": result, "firstName": driver.firstName, "lastName": driver.lastName, "winchPlates": driver.winchPlates, "governorate": driver.governorate });
         else
             // USER ALREADY EXISTS. ==> but no first or last name.
             return response.status(200).send({ "token": result });

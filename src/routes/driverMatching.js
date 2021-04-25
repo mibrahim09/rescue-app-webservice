@@ -23,9 +23,15 @@ router.post('/Rate', auth, async (req, res) => {
     requestHandler.handleWinch2CustomerRating(req, res);
 });
 
-router.post('/StartRide', auth, async (req, res) => {
-    requestHandler.dummyStart(req, res);
+
+router.post('/driverArrival', auth, async (req, res) => {
+    requestHandler.handleDriverResponse(req, res);
 });
+
+router.post('/ServiceStart', auth, async (req, res) => {
+    requestHandler.handleDriverResponse(req, res);
+});
+
 
 
 module.exports = router;

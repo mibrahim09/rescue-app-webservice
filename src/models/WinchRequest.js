@@ -4,21 +4,32 @@ class WinchRequest {
     lastScopeIncrease = Date.now();
     acceptedStamp = null;
     FinishTimeStamp = Date.now();
-    StartedTimeStamp = Date.now();
     Fare = 0.0;
     WAITING_FOR_DRIVER_RATING = false;
     WAITING_FOR_CUSTOMER_RATING = false;
     Status = "";
+    RequestId = "";
 
     driverId = null;
-
     locationLat = null;
     locationLong = null;
 
-    constructor(requesterId, pickupLocation, dropOffLocation, driverId) {
+    ArrivalTimeStamp = null;
+    StartTimeStamp = Date.now();
+
+    
+    // list of drivers that rejected.
+    // // 
+    // List<id> listofdriversRejected;
+
+    // if(listofdriversRejected.has(driversId))
+    // getNextNearest();
+
+    constructor(requesterId, pickupLocation, dropOffLocation) {
         this.pickupLocation = pickupLocation;
         this.dropOffLocation = dropOffLocation;
         this.requesterId = requesterId;
+        //this.RequestId = RequestId;
     }
 
 
@@ -37,12 +48,8 @@ class WinchRequest {
         return this.Fare;
     }
 
-    AddLogsToDb() {
-        // Do the logs here in the DB.
-    }
-
     getFinishETA() {
-        var res = Math.abs(this.FinishTimeStamp - this.StartedTimeStamp) / 1000;
+        var res = Math.abs(this.FinishTimeStamp - this.StartTimeStamp) / 1000;
         // get total days between two dates
         var days = Math.floor(res / 86400);
         // get hours        

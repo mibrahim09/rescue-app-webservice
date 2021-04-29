@@ -12,12 +12,12 @@ async function handleMechanicRegisteration(request, response) {
         .status(400)
         .send({ "error": error.details[0].message });
 
-    /*const msg = await firebase.validateCustomerPhone(request);
+    const msg = await firebase.validateCustomerPhone(request);
     if (msg !== "OK") {
         return response.status(400).send({
             "error": msg
         });
-    }*/
+    }
 
     let mechanic = await Mechanic.findOne({ phoneNumber: request.body.phoneNumber });
     if (mechanic) {

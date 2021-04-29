@@ -12,18 +12,25 @@ async function handleMechanicRegisteration(request, response) {
         .status(400)
         .send({ "error": error.details[0].message });
 
-    const msg = await firebase.validateCustomerPhone(request);
+    /*const msg = await firebase.validateCustomerPhone(request);
     if (msg !== "OK") {
         return response.status(400).send({
             "error": msg
         });
-    }
+    }*/
 
     let mechanic = await Mechanic.findOne({ phoneNumber: request.body.phoneNumber });
     if (mechanic) {
-
-        var result = await mechanic.generateAuthToken();
-        return response.status(200).send({ "token": result }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
+        verified = false;
+        if (mechanic.firstName && mechanic.lastName && mechanic.governorate && mechanic.personalPicture )
+            verified = true;
+        var result = await mechanic.generateAuthToken(verified);
+        if (verified)
+            // USER ALREADY EXISTS and has a first or last name. Send them
+            return response.status(200).send({ "token": result, "firstName": mechanic.firstName, "lastName": mechanic.lastName, "governorate": mechanic.governorate });
+        else
+            // USER ALREADY EXISTS. ==> but no first or last name.
+            return response.status(200).send({ "token": result }); // USER ALREADY EXISTS. ==> ASK IS THAT YOU?
     }
 
     // VALID USER.
@@ -66,7 +73,7 @@ async function handleUpdateData(request, response) {
             new: true
         });
 
-        const newToken = await result.generateAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateAuthToken(false);// NEW TOKEN with the rest of data set.
         response.status(200).send({ "token": newToken });
         }
     catch (ex) {
@@ -87,14 +94,12 @@ async function handleRestOfImageData(request, response) {
             {
             personalPicture: request.file.path
 
-            //For Testing
-            //approvalState: true
             },
             {
                 new: true
             });
             
-        const newToken = await result.generateFinalAuthToken();// NEW TOKEN with the rest of data set.
+        const newToken = await result.generateFinalAuthToken(true);// NEW TOKEN with the rest of data set.
         response.status(200).send({ "token": newToken });
     }
     catch (ex) {

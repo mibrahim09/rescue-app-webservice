@@ -2,13 +2,16 @@ const Joi = require('joi');
 const { WinchRequest } = require('../models/WinchRequest');
 const { Driver, insertDriverStars } = require('../models/winchDriver');
 const { Customer, insertCustomerStars } = require('../models/customer');
+const { Cars, createCar, validateCar } = require('../models/cars');
 
 var mongoose = require('mongoose');
 const { inRange } = require('lodash');
 
 const winstonLogger = require('winston');
+const cars = require('../models/cars');
 require('winston-mongodb');
-winstonLogger.add(winstonLogger.transports.MongoDB, { db: 'mongodb://localhost/winchdb' });
+
+winstonLogger.add(winstonLogger.transports.MongoDB, { db: 'mongodb://localhost:27017/winchdb' });
 
 var ReadyToAcceptRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var AcceptedRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest

@@ -3,7 +3,7 @@ const debug = require('debug')('app:config');
 
 debug.enabled = true;
 
-const connectionString = 'mongodb://localhost/winchdb';
+const connectionString = 'mongodb://localhost:27017/winchdb';
 
 function startConnection() {
     mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }).

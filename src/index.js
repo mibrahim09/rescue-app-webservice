@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const configDB = require('./config');
 const firebase = require('./controllers/firebase');
+const winstonLogger = require('winston');
+require('winston-mongodb');
 
 const app = express();// Created a new web server
 

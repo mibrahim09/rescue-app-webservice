@@ -44,6 +44,11 @@ const mechanicSchema = mongoose.Schema({
         required: function () { return this.isMobileVerified; }
     },
     personalPicture: { type: String },
+    balance: {
+        type: Number,
+        default: 0,
+        set: function (v) { return Math.round(v); } //Not Tested Yet
+    },
     approvalState: {
         type: Boolean,
         default: false
@@ -56,21 +61,25 @@ const mechanicSchema = mongoose.Schema({
     }
 });
 
-mechanicSchema.methods.generateAuthToken = function () {
+mechanicSchema.methods.generateAuthToken = function (verified) {
     const token = jwt.sign({
         _id: this._id,
-        firstName: this.firstName,
-        lastName: this.lastName,
-        governorate: this.governorate
+        //firstName: this.firstName,
+        //lastName: this.lastName,
+        //governorate: this.governorate
+        verified: verified,
+        user_type: "mechanic"
     }, config.get('jwtPrivateKey'));
     return token;
 }
-mechanicSchema.methods.generateFinalAuthToken = function () {
+mechanicSchema.methods.generateFinalAuthToken = function (verified) {
     const token = jwt.sign({
         _id: this._id,
-        firstName: this.firstName,
-        lastName: this.lastName,
-        personalPicture: this.personalPicture
+        //firstName: this.firstName,
+        //lastName: this.lastName,
+        //personalPicture: this.personalPicture
+        verified: verified,
+        user_type: "mechanic"
     }, config.get('jwtPrivateKey'));
     return token;
 }
@@ -80,8 +89,8 @@ const Mechanic = mongoose.model('mechanic_users', mechanicSchema);
 function validatePhone(request) {
     // Validation
     const validationSchema = Joi.object({
-        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required(),
-        fireBaseId: Joi.string().required()
+        phoneNumber: Joi.string().length(13).regex(/(\+)(201)[0-9]{9}/).required()
+        //fireBaseId: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 
@@ -92,7 +101,7 @@ async function createMechanicUser(request, response) {
     });
     try {
         const mechanicPromise = await mechanic.save();
-        const token = await mechanic.generateAuthToken();
+        const token = await mechanic.generateAuthToken(false);
         response.status(200).send({ "token": token });
     }
     catch (ex) {

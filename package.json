@@ -1,0 +1,36 @@
+{
+  "name": "rescue-app-webservice-master",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src\\index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mibrahim09/rescue-app-webservice.git"
+  },
+  "author": "Muhammad Ibrahim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mibrahim09/rescue-app-webservice/issues"
+  },
+  "homepage": "https://github.com/mibrahim09/rescue-app-webservice#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "config": "^3.3.3",
+    "debug": "^4.3.1",
+    "express": "^4.17.1",
+    "firebase-admin": "^9.4.2",
+    "joi": "^17.3.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.20",
+    "meters": "0.0.2",
+    "mongoose": "^5.11.12",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "sequelize-msnodesqlv8": "^0.2.6-beta.8",
+    "winston": "^2.4.0",
+    "winston-mongodb": "^3.0.0"
+  }
+}

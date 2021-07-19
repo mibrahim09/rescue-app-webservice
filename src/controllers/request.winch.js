@@ -6,12 +6,13 @@ const { Cars, createCar, validateCar } = require('../models/cars');
 
 var mongoose = require('mongoose');
 const { inRange } = require('lodash');
+var m = require('meters')
 
 const winstonLogger = require('winston');
 const cars = require('../models/cars');
+const customer = require('../models/customer');
 require('winston-mongodb');
-
-winstonLogger.add(winstonLogger.transports.MongoDB, { db: 'mongodb://localhost:27017/winchdb' });
+winstonLogger.add(winstonLogger.transports.MongoDB, { db: 'mongodb://localhost/winchdb' });
 
 var ReadyToAcceptRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
 var AcceptedRides = new Map(); // DICTIONARY --> KEY: RequestId, VAL: WinchRequest
@@ -21,7 +22,7 @@ var ActiveDriverRides = new Map();// DICTIONARY --> KEY: DriverId, VAL: RequestI
 var DistancesMap = new Map();
 var MatchedDrivers = new Map();
 
-var nearestRequestId = "";
+var driverInitialLocation = {}; // requestId: driverId: Locaton
 
 const RIDE_STATUS_SEARCHING = 'SEARCHING';
 const RIDE_STATUS_ACCEPTED = 'ACCEPTED';
@@ -43,7 +44,11 @@ function validateNewRequest(request) {
         DropOffLocation_Lat: Joi.string().required(),
         DropOffLocation_Long: Joi.string().required(),
         PickupLocation_Lat: Joi.string().required(),
-        PickupLocation_Long: Joi.string().required()
+        PickupLocation_Long: Joi.string().required(),
+        Estimated_Time: Joi.string().required(),
+        Estimated_Distance: Joi.string().required(),
+        Estimated_Fare: Joi.string().required(),
+        Car_ID: Joi.string().required()
     });
     return validationSchema.validate(request.body);
 }
@@ -73,7 +78,7 @@ function validateDriverRequest(request) {
 
 function validateDriverResponse(request) {
     const validationSchema = Joi.object({
-        driverResponse: Joi.string().required()
+        driverResponse: Joi.string().valid("Accept", "Deny", "Arrived", "Service Start").required()
     });
     return validationSchema.validate(request.body);
 }
@@ -93,6 +98,25 @@ function getDirections(req, callback) {
         };
     });
 
+};
+function getInitialFare(ride) {
+    var initialFare = 0.0;
+    googleMapsClient.distanceMatrix({
+        origins: ride.pickupLocation,
+        destinations: ride.dropOffLocation,
+        mode: 'driving'
+
+    }, function (err, response) {
+        if (!err) {
+            let distance = response.json.rows[0].elements[0].distance.text;
+            console.log(distance);
+            dist = distance.substr(0, distance.indexOf(" km"));
+            initialFare += (parseFloat(dist).toFixed(2)) * 0.20;
+            console.log(initialFare);
+            ride.set_Initial_fare(initialFare);
+
+        };
+    });
 };
 
 function getRideStatus(requestId) {
@@ -297,6 +321,15 @@ async function handleCustomerNewRequest(request, response) {
     // Get the dropoff and pickup location (latitude, longitude)
     const dropOffLocation = { lat: request.body.DropOffLocation_Lat, lng: request.body.DropOffLocation_Long };
     const pickUpLocation = { lat: request.body.PickupLocation_Lat, lng: request.body.PickupLocation_Long };
+    const est_time = request.body.Estimated_Time;
+    const est_dist = request.body.Estimated_Distance;
+    const est_fare = request.body.Estimated_Fare;
+    const carID = request.body.Car_ID;
+
+    let customerCar = await Cars.findOne({ _id: carID })
+    if (!customerCar) return response.status(400).send({ "error": "No such car found." });
+    if (customerCar.OwnerId != request.user._id) return response.status(400).send({ "error": "This car isnt owned by this user." });
+
 
     const customerId = request.user._id;
     // Check if this customer has an active request?
@@ -319,7 +352,7 @@ async function handleCustomerNewRequest(request, response) {
     ActiveCustomerRides.set(customerId, requestId);
 
     // Generate New Request Object Constructor: CutomerId, Pickuplocation, DropOffLocation
-    let newRequest = new WinchRequest(customerId, pickUpLocation, dropOffLocation);
+    let newRequest = new WinchRequest(customerId, pickUpLocation, dropOffLocation, est_time, est_dist, est_fare, customerCar);
     newRequest.RequestId = requestId.toString();
 
     newRequest.setStatus(RIDE_STATUS_SEARCHING);
@@ -363,6 +396,13 @@ function terminateRide(requestId, customerId) {
     }
 }
 
+function arrayRemove(arr, value) {
+
+    return arr.filter(function (ele) {
+        return ele != value;
+    });
+}
+
 async function handleDriverRequest(request, response) {
 
     const { error, value } = validateDriverRequest(request);
@@ -383,41 +423,86 @@ async function handleDriverRequest(request, response) {
             return response.status(400).send({ "error": "You already have an active ride.", "status": ride.Status, "requestId": currentRequestId });
     }
 
-    if (ReadyToAcceptRides.size == 0) {
+    if (ReadyToAcceptRides.size == 0) { //checking if there are no requests 
         return response.status(400).send({ "error": "No client requests now" });
     }
     const promise = rideinturn => new Promise((resolve) => {
+        //promise that has inour 'rideinturn' and handles get directions function
 
-        getDirections(inputs, function (result) {
+        getDirections(inputs, function (res) {
 
             try {
-                Distance = result.json.rows[0].elements[0].distance.text,
-                    Duration = result.json.rows[0].elements[0].duration.text
-                DistancesMap.set(rideinturn[0], Distance)
+                Distance = res.json.rows[0].elements[0].distance.text,
+                    Duration = res.json.rows[0].elements[0].duration.text
+                if (m(Distance) <= rideinturn[1].searchScope) {
+                    DistancesMap.set(rideinturn[0], Distance)
+                }
+                console.log(Distance)
+                console.log(rideinturn[1].searchScope)
+                console.log(DistancesMap)
                 resolve(Distance)
             }
             catch (ex) { console.log(ex); }
 
         });
     });
+
     RideInTurn = []
     var inputs
-    for (let RideInTurn of ReadyToAcceptRides.entries()) {
-        inputs = {
 
-            origin: [driverLocation],
-            destination: [RideInTurn[1].pickupLocation]
-        };
-        await promise(RideInTurn)
-    }
-    NearestRide = DistancesMap.entries().next().value
-    for (let dist of DistancesMap.entries()) {
-        if (dist[1] < NearestRide[1]) {
-            NearestRide = dist
+    //looping on all the rides in readytoacceptrides and getting distance between it and bet the driver location 
+    for (let RideInTurn of ReadyToAcceptRides.entries()) {
+        //checking if 10 mins have passed on the ride
+        //and checking if this driver has rejected this ride before 
+        if ((Date.now() - RideInTurn[1].creationTimeStamp) < getMilliSeconds(10) && !(RideInTurn[1].listofdriversRejected.includes(Driverid))) {
+            inputs = {
+                origin: [RideInTurn[1].pickupLocation],
+                destination: [driverLocation]
+            };
+            console.log(inputs)
+            await promise(RideInTurn)
+
         }
+        //RideInTurn[1].listofdriversRejected = arrayRemove(RideInTurn[1].listofdriversRejected, Driverid);
+
+        var DriverIdIndex = RideInTurn[1].listofdriversRejected.indexOf(Driverid);
+        RideInTurn[1].listofdriversRejected.splice(DriverIdIndex, 1);
+
     }
-    MatchedDrivers.set(Driverid, NearestRide[0]);
-    return response.status(200).send({ "Nearest Ride: Pickup Location": ReadyToAcceptRides.get(NearestRide[0]).pickupLocation, "Dropoff Location": ReadyToAcceptRides.get(NearestRide[0]).dropOffLocation });
+
+    if (DistancesMap.size == 0) {
+        return response.status(400).send({ "error": "No client requests now" });
+    }
+    else {
+        //getting the ride with smallest distance 
+        NearestRide = DistancesMap.entries().next().value
+        for (let dist of DistancesMap.entries()) {
+            if (m(dist[1]) < m(NearestRide[1])) {
+                NearestRide = dist
+            }
+        }
+
+        var driverInfo = {
+            id: Driverid,
+            lat: request.body.Location_Lat,
+            lng: request.body.Location_Long
+
+        }
+
+        DistancesMap.clear();
+
+        driverInitialLocation[NearestRide[0]] = driverInfo;
+        console.log(Object.entries(driverInitialLocation));
+
+        MatchedDrivers.set(Driverid, NearestRide[0]); //setting driverid and its matched ride in the map
+        return response.status(200).send({
+            "Nearest Ride: Pickup Location": ReadyToAcceptRides.get(NearestRide[0]).pickupLocation,
+            "Nearest Ride: Distination Location": ReadyToAcceptRides.get(NearestRide[0]).dropOffLocation,
+
+        });
+
+    }
+
 }
 
 async function handleUpdateDriverLocation(request, response) {
@@ -433,13 +518,13 @@ async function handleUpdateDriverLocation(request, response) {
     let driverId = request.driver._id;
 
     var currentRequestId = ActiveDriverRides.get(driverId);
-    if (currentRequestId == null) 
-        return response.status(400).send({ "error": "You don't have an active ride."});
+    if (currentRequestId == null)
+        return response.status(400).send({ "error": "You don't have an active ride." });
 
     var ride = getRide(currentRequestId);
     if (ride != null) {
         ride.updateDriverLocation(lat, long);
-        return response.status(200).send({"Done": "Your Location has been Updated Successfully"}); 
+        return response.status(200).send({ "Done": "Your Location has been Updated Successfully" });
     }
 
 }
@@ -462,13 +547,39 @@ async function handleDriverResponse(request, response) {
         }
         const customerId = acceptRide(RequestID, driverId);
         let customer = await Customer.findOne({ _id: customerId });
-        MatchedDrivers.delete(driverId)
-        return response.status(200).send({ "firstName": customer.firstName, "lastName": customer.lastName, "phoneNumber": customer.phoneNumber });
+        ride = getRide(RequestID);
+        if (driverInitialLocation.hasOwnProperty(RequestID)) {
+            if(driverInitialLocation[RequestID].id == driverId){
+                ride.setDriverInitialLocation(driverInitialLocation[RequestID].lat, driverInitialLocation[RequestID].lng);
+            }
+        }
+        MatchedDrivers.delete(driverId);
+        return response.status(200).send({
+            "firstName": customer.firstName, 
+            "lastName": customer.lastName, 
+            "phoneNumber": customer.phoneNumber, 
+            "EstimatedTime": ride.estimated_time,
+            "EstimatedDistance": ride.estimated_distance, 
+            "EstimatedFare": ride.estimated_fare,
+            "CarBrand": ride.customerCarBrand,
+            "CarModel": ride.customerCarModel, 
+            "CarPlates": ride.customerCarPlates
+        });
     }
 
-
     else if (driverResponse == "Deny") {
-        return response.status(200).send("Later");
+        RequestID = MatchedDrivers.get(driverId);
+        if (RequestID == null) {
+            return response.status(400).send({ "Error": "You Have No Matched Ride!" });
+        }
+        ride = ReadyToAcceptRides.get(RequestID)
+        if (!ride.listofdriversRejected.includes(driverId)) {
+            ride.listofdriversRejected.push(driverId);
+        }
+        console.log(ride.listofdriversRejected);
+        MatchedDrivers.delete(driverId);
+        return response.status(200).send({ "msg": "Check For Another Request" });
+
     }
 
     else if (driverResponse == "Arrived") {
@@ -476,10 +587,41 @@ async function handleDriverResponse(request, response) {
         if (RequestID == null) {
             return response.status(400).send({ "Error": "You Have No Ride!" });
         }
+
         AcceptedRide = AcceptedRides.get(RequestID)
+        //This part is for later to check whther the driver's arrival location is equal/close to the client's pickup location or not
+        // arrivalscope = 200 //200 meters
+        // ArrivalLocation = { lat: AcceptedRide.locationLat, lng: AcceptedRide.locationLong };
+        // Inputs = {
+        //     origin: [AcceptedRide.pickupLocation],
+        //     destination: [ArrivalLocation]
+        // }
+
+        // getDirections(Inputs, function (result) {
+        //     try {
+        //         distance = result.json.rows[0].elements[0].distance.text
+        //         console.log(distance)
+        //         if (m(distance) > arrivalscope) {
+        //             return response.status(200).send({
+        //                 "msg": "You haven't arrived yet!"
+        //             });
+        //         }
+        //         else {
+        //             AcceptedRide.Status = RIDE_STATUS_ARRIVED;
+        //             AcceptedRide.ArrivalTimeStamp = Date.now();
+        //             return response.status(200).send({
+        //                 "msg": "Alright!"
+        //             });
+        //         }
+        //     }
+        //     catch (ex) { console.log(ex); }
+        // });
+        getInitialFare(AcceptedRide);
         AcceptedRide.Status = RIDE_STATUS_ARRIVED;
         AcceptedRide.ArrivalTimeStamp = Date.now();
-        return response.status(200).send("Alright");
+        return response.status(200).send({
+            "msg": "Alright!"
+        });
 
     }
 
@@ -494,8 +636,9 @@ async function handleDriverResponse(request, response) {
         }
         AcceptedRide.Status = RIDE_STATUS_STARTED;
         AcceptedRide.StartTimeStamp = Date.now();
-        return response.status(200).send("Alright");
-
+        return response.status(200).send({
+            "msg": "Alright!"
+        });
     }
 
 
@@ -521,7 +664,7 @@ async function handleCancelRide(request, response) {
             let customer = await Customer.findOne({ _id: customerId });
             let driver = await Driver.findOne({ _id: driverId });
             console.log(driverId);
-            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(2)) {
+            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(10)) {
                 const customerFine = customer.wallet - 10;
                 let customerResult = await Customer.findOneAndUpdate(
                     { _id: customerId },
@@ -568,6 +711,49 @@ async function handleCancelRide(request, response) {
         return response.status(400).send({ "error": "You Can't Cancel This Ride." });
 }
 
+async function handleDriverCancellation(request, response) {
+    // Get driverId from JWT Token
+    const driverId = request.driver._id;
+    // If the mechanic is still searching for a request
+    if (MatchedDrivers.has(driverId)) {
+        MatchedDrivers.delete(driverId);
+        return response.status(200).send({ "Status": 'CANCELLED' });
+    }
+    // If the mechanic has already accepted the request
+    else if (ActiveDriverRides.has(driverId)) {
+        const requestId = ActiveDriverRides.get(driverId);
+        var ride = getRide(requestId);
+        if (ride.Status == RIDE_STATUS_ACCEPTED){
+            if ((Date.now() - ride.acceptedStamp) > getMilliSeconds(10)) {
+                return response.status(400).send({ "error": "You Can't Cancel This Request." });
+            }
+            AcceptedRides.delete(requestId);
+            ActiveDriverRides.delete(driverId);
+            if (!ride.listofdriversRejected.includes(driverId)) {
+                ride.listofdriversRejected.push(driverId);
+            }
+            console.log(ride.listofdriversRejected);
+            return response.status(200).send({ "Status": 'CANCELLED', "Details": 'Request was accepted' });
+        }
+        else if (ride.Status == RIDE_STATUS_ARRIVED){
+            if ((Date.now() - ride.ArrivalTimeStamp) > getMilliSeconds(10)) {
+                AcceptedRides.delete(requestId);
+                ActiveDriverRides.delete(driverId);
+                if (!ride.listofdriversRejected.includes(driverId)) {
+                    ride.listofdriversRejected.push(driverId);
+                }
+                console.log(ride.listofdriversRejected);
+                return response.status(200).send({ "Status": 'CANCELLED', "Details": 'Can not find customer!' });
+            }
+            else{
+                return response.status(400).send({ "error": "You Can't Cancel This Request." });
+            }     
+        }   
+    }
+    else
+        return response.status(400).send({ "error": "You don't have any request." });
+}
+
 
 async function handleCheckRideStatus(request, response) {
 
@@ -601,25 +787,46 @@ async function handleCheckRideStatus(request, response) {
         // Each minute Scope is increased by 2KMs.
         if ((Date.now() - myRide.lastScopeIncrease) > getMilliSeconds(1)) {// Each minute increase the scope.
             myRide.lastScopeIncrease = Date.now();
-            myRide.searchScope += 2;
+            myRide.searchScope += 2000; //2000 meters=2km
         }
         response.status(200).send({ "Status": status, "Scope": myRide.searchScope });
     }
     else {
         //let driver = await Driver.findOne({ _id: myRide.driverId });
         if (status == RIDE_STATUS_ACCEPTED) {
-            return response.status(200).send({ "Status": status, "Time Passed Since Request Acceptance": ((Date.now() - myRide.acceptedStamp) / (1000 * 60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates, "DriverLocation_lat": myRide.locationLat, "DriverLocation_long": myRide.locationLong });
+            return response.status(200).send({ 
+                "Status": status, 
+                "Time Passed Since Request Acceptance": ((Date.now() - myRide.acceptedStamp) / (1000 * 60)), 
+                "firstName": driver.firstName, 
+                "lastName": driver.lastName, 
+                "phoneNumber": driver.phoneNumber, 
+                "winchPlates": driver.winchPlates, 
+                "DriverLocation_lat": myRide.locationLat, 
+                "DriverLocation_long": myRide.locationLong 
+            });
         }
         else if (status == RIDE_STATUS_ARRIVED) {
             return response.status(200).send({
-                "Status": status, "Time Passed Since Driver Arrival": ((Date.now() - myRide.ArrivalTimeStamp) / (1000 * 60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates,
-                "DriverLocation_lat": myRide.locationLat, "DriverLocation_long": myRide.locationLong
+                "Status": status, 
+                "Time Passed Since Driver Arrival": ((Date.now() - myRide.ArrivalTimeStamp) / (1000 * 60)), 
+                "firstName": driver.firstName, 
+                "lastName": driver.lastName, 
+                "phoneNumber": driver.phoneNumber,
+                "winchPlates": driver.winchPlates, 
+                "DriverLocation_lat": myRide.locationLat, 
+                "DriverLocation_long": myRide.locationLong 
             });
         }
         else if (status == RIDE_STATUS_STARTED) {
             return response.status(200).send({
-                "Status": status, "Time Passed Since Service Start ": ((Date.now() - myRide.StartTimeStamp) / (1000 * 60)), "firstName": driver.firstName, "lastName": driver.lastName, "phoneNumber": driver.phoneNumber, "winchPlates": driver.winchPlates,
-                "DriverLocation_lat": myRide.locationLat, "DriverLocation_long": myRide.locationLong
+                "Status": status, 
+                "Time Passed Since Service Start ": ((Date.now() - myRide.StartTimeStamp) / (1000 * 60)), 
+                "firstName": driver.firstName, 
+                "lastName": driver.lastName, 
+                "phoneNumber": driver.phoneNumber,
+                "winchPlates": driver.winchPlates, 
+                "DriverLocation_lat": myRide.locationLat, 
+                "DriverLocation_long": myRide.locationLong 
 
             });
 
@@ -628,7 +835,8 @@ async function handleCheckRideStatus(request, response) {
             return response.status(200).send({
                 "Status": status,
                 "winchPlates": driver.winchPlates,
-                "TripTime": myRide.getFinishETA()
+                "TripTime": myRide.getFinishETA(),
+                "Fare": myRide.Fare
             });
 
         }
@@ -643,6 +851,7 @@ module.exports = {
     handleDriverResponse: handleDriverResponse,
     handleUpdateDriverLocation: handleUpdateDriverLocation,
     handleCancelRide: handleCancelRide,
+    handleDriverCancellation: handleDriverCancellation,
     handleEndRide: handleEndRide,
     handleWinch2CustomerRating: handleWinch2CustomerRating,
     handleCustomer2WinchRating: handleCustomer2WinchRating,

@@ -48,6 +48,7 @@ const driverSchema = mongoose.Schema({
         required: function () { return this.isMobileVerified; },
         minlength: 4,
         maxlength: 7,
+        unique: true,
         match: /([0-9][ء-ي])|([ء-ي][0-9])/
     },
     governorate: {

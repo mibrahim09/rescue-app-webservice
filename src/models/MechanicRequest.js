@@ -1,70 +1,81 @@
-class WinchRequest {
+class MechanicRequest {
     searchScope = 5000;// Intial value 5000 meters
     creationTimeStamp = Date.now();
     lastScopeIncrease = Date.now();
     acceptedStamp = null;
     FinishTimeStamp = Date.now();
     Fare = 0.0;
-    initialFare = 0.0;
+    visit_fare = 0.0;   // Base Fare = 7.50   
     Expected_duration = null;   // May be needed
-    WAITING_FOR_DRIVER_RATING = false;
+    WAITING_FOR_MECHANIC_RATING = false;
     WAITING_FOR_CUSTOMER_RATING = false;
     Status = "";
     RequestId = "";
+    customerApproval = false;
 
-    driverId = null;
+    mechanicId = null;
 
     initial_LocationLat = null;
     initial_LocationLong = null;
+
     locationLat = null;
     locationLong = null;
 
     ArrivalTimeStamp = null;
     StartTimeStamp = Date.now();
 
-    listofdriversRejected = [];
+    RepairsMade = [];
+    customerIntialDiagnosis = [];
 
-    constructor(requesterId, pickupLocation, dropOffLocation, estimated_time, estimated_distance, estimated_fare, customerCar) {
+    listofMechanicsRejected = []; // mechanicId: RequestId
+
+    constructor(requesterId, pickupLocation, estimated_time, estimated_fare, customerCar) {
         this.pickupLocation = pickupLocation;
-        this.dropOffLocation = dropOffLocation;
         this.requesterId = requesterId;
-        //this.RequestId = RequestId;
         this.estimated_time = estimated_time;
-        this.estimated_distance = estimated_distance;
         this.estimated_fare = estimated_fare;
         this.customerCarBrand = customerCar.CarBrand;
         this.customerCarModel = customerCar.Model;
         this.customerCarPlates = customerCar.Plates;
         this.customerCarYear = customerCar.Year;
-    }
 
+    }
 
     setStatus(status) {
         this.Status = status;
     }
 
-    set_Initial_fare(initialFare) {
-        this.initialFare = initialFare;
+    set_visit_fare(visitFare) {
+        this.visit_fare = visitFare;
     }
 
-    setDriverInitialLocation(initial_LocationLat, initial_LocationLong) {
+    setMechanicInitialLocation(initial_LocationLat, initial_LocationLong) {
         this.initial_LocationLat = initial_LocationLat;
         this.initial_LocationLong = initial_LocationLong;
         this.locationLat = initial_LocationLat;
         this.locationLong = initial_LocationLong;
     }
 
-    updateDriverLocation(location_Lat, location_Long) {
+    updateMechanicLocation(location_Lat, location_Long) {
         this.locationLat = location_Lat;
         this.locationLong = location_Long;
     }
 
     CalcuateFare() {
-        // TODO: Calculate the distance between the 2 points and the timestamp.
-        var res = Math.abs(this.FinishTimeStamp - this.StartTimeStamp) / 1000;
-        var minutes = Math.floor(res / 60) % 60;
-        this.initialFare += minutes * 0.20;
-        this.Fare += this.initialFare * 16;
+        if (this.customerApproval == true) {
+            if (this.RepairsMade.length != 0) {
+                for (var i = 0; i < this.RepairsMade.length; i++) {
+                    if (this.RepairsMade[i].Repairkind == "item") {
+                        this.Fare += this.RepairsMade[i].Repairitself.Price * parseInt(this.RepairsMade[i].RepairNumber);
+                    }
+                    if (this.RepairsMade[i].Repairkind == "service") {
+                        this.Fare += this.RepairsMade[i].Repairitself.ExpectedFare;
+                    }
+
+                }
+            }
+        }
+        this.Fare += this.visit_fare * 2;
         return this.Fare;
     }
 
@@ -87,5 +98,5 @@ class WinchRequest {
     }
 }
 module.exports = {
-    WinchRequest: WinchRequest
+    MechanicRequest: MechanicRequest
 }

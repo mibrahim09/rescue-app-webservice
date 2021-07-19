@@ -22,7 +22,5 @@ const upload = multer({
     }
 }).array("DriverImages", 7);
 
-//.array("DriverImages",7);
-
 var uploadFilesMiddleware = util.promisify(upload);
 module.exports = uploadFilesMiddleware;

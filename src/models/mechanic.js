@@ -30,17 +30,16 @@ const mechanicSchema = mongoose.Schema({
         maxlength: 20,
         match: /[a-zA-Z]|[ء-ي]/
     },
+    TotalStars: {
+        type: Number,
+        default: 0
+    },
+    TotalRides: {
+        type: Number,
+        default: 0
+    },
     governorate: {
         type: String,
-        enum: ['Ain Sokhna', 'Alexandria', 'Aswan', 'Asyut', 'Banha', 'Beheira', 'Beni Suef', 'Cairo',
-            'Dakahlia', 'Damietta', 'Faiyum', 'Gharbia', 'Giza', 'Hurghada', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Mansoura',
-            'Marsa Alam', 'Matruh', 'Minya', 'Monufia', 'New Valley', "North Coast", 'North Sinai', 'Port Said', 'Qalyubia', 'Qena',
-            'Quseer', 'Ras Ghareb', 'Red Sea', 'Safaga', 'Sharm El-Sheikh', 'Sharqia', 'Sohag', 'South Sinai', 'Suez', 'Tanta',
-            'الإسكندرية', 'مطروح', 'الساحل الشمالي', 'البحيرة', 'كفر الشيخ', 'طنطا', 'المنصورة', 'بنها'
-            , 'دمياط', 'الشرقية', 'المنوفية', 'الاسماعيلية',
-            'بورسعيد', 'السويس', 'السخنة', 'الغردقة', 'شرم الشيخ', 'قنا', 'سوهاج'
-            , 'اسيوط', 'اسوان', 'المنيا', 'بني سويف', 'الفيوم',
-            'الوادي الجديد', 'راس غارب', 'سفاجا', 'القصير', 'مرسى علم'],
         required: function () { return this.isMobileVerified; }
     },
     personalPicture: { type: String },
@@ -58,6 +57,14 @@ const mechanicSchema = mongoose.Schema({
         //required: function() { return this.approvalState; },
         enum: ['Offline', 'Idle', 'Busy'],
         default: 'Offline'
+    },
+    employee: {
+        type: Boolean,
+        default: false
+    },
+    centerId: {
+        type: mongoose.SchemaTypes.ObjectId,
+        required: function () { return this.employee; }
     }
 });
 
@@ -108,8 +115,36 @@ async function createMechanicUser(request, response) {
         response.status(400).send(ex.message);
     }
 }
+
+async function insertStars(mechanicId, Stars, response) {
+
+    let user = await Mechanic.findOne({ _id: mechanicId });
+
+    if (!user) return response.status(400).send({
+        "error": "User doesn't exist."
+    });
+    try {
+
+        let result = await Mechanic.findOneAndUpdate(
+            { _id: mechanicId },// filter
+            { // updated data
+                TotalStars: user.TotalStars + Stars,
+                TotalRides: user.TotalRides + 1
+            },
+            {
+                new: true
+            });
+
+    }
+    catch (ex) {
+        return response.status(400).send({ "error": ex.message });
+    }
+
+}
+
 module.exports = {
     Mechanic: Mechanic,
+    inserMechanicStars: insertStars,
     createMechanicUser: createMechanicUser,
     validatePhone: validatePhone
 };

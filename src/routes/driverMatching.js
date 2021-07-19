@@ -15,6 +15,10 @@ router.post('/liveTracker', auth, async (req, res) => {
     requestHandler.handleUpdateDriverLocation(req, res);
 });
 
+router.get('/DriverCancel', auth, async (req, res) => {
+    requestHandler.handleDriverCancellation(req, res);
+});
+
 router.post('/EndRide', auth, async (req, res) => {
     requestHandler.handleEndRide(req, res);
 });

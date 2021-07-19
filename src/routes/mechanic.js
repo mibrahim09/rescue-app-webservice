@@ -12,6 +12,9 @@ router.post('/me/UploadImage', auth, upload, async (req, res) => {
     mechanicHandler.handleRestOfImageData(req, res);
 }, (err, req, res, next) => res.status(404).send({ error: err.message }));
 
+router.post('/me/employment', auth, async (req, res) => {
+    mechanicHandler.handleRestOfData(req, res);
+});
 
 router.post('/me/AfterApproval', auth, async (req, res) => {
     mechanicHandler.handleRestOfDataAfterApproval(req, res);

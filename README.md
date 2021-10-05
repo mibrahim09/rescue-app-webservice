@@ -463,3 +463,300 @@ If Ride Is Completed
     "Fare": 16.32
 }
 ```
+
+================================================================================================
+* Creating a new mechanic request | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/requestmechanic/createrequest
+
+Data required
+```json
+{
+    "PickupLocation_Lat": "31.236110220827165",
+    "PickupLocation_Long": "29.948748010875686",
+    "IntialDiagnosis": "Car battery fault",
+    "Car_ID":"608983215c65c00c48af7403"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "status": "SEARCHING",
+    "requestId": "602d812619dd6414140f4032"
+}
+```
+
+If you try to request a ride again on the same user with an active ride. 
+```json
+{
+    "error": "This customer has already an active ride.",
+    "status": "SEARCHING",
+    "requestId": "602d812619dd6414140f4032"
+}
+```
+
+If you try to request a ride without rating the previous ride it'll return the following
+
+```json
+{
+    "error": "You need to rate the previous ride before moving to another.",
+    "status": "COMPLETED",
+    "requestId": "6080956b626fc8563c6df11a"
+}```
+
+If the car id doesnt belong to a car in the database
+```json
+{
+  "error": "No such car found."
+}
+```
+
+If the car id isnt owned by the customer sending the request
+```json
+{
+  "error": "This car isnt owned by this user."
+}
+```
+
+
+================================================================================================
+
+================================================================================================
+* Rating the Mechanic  | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/requestmechanic/Rate
+
+Data required
+```json
+{
+    "Stars": "3"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "msg": "Rated Successfully"
+}
+```
+
+================================================================================================
+
+================================================================================================
+* Cancel Request | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/requestmechanic/cancelride
+
+- If the request is still in searching state
+```
+{
+    "Status": "CANCELLED"
+}
+```
+
+- Cancel a request which is already accepted
+```
+{
+    "Status": "CANCELLED",
+    "Details": "No Fine Applied",
+    "mechanicBalance": 0,
+    "customerWallet": 0
+}
+```
+
+- Cancel a request which has been accepted from 10 min.
+```
+{
+    "Status": "CANCELLED",
+    "mechanicBalance": 10,
+    "customerWallet": -10
+}
+```
+
+-Customer displays Repairs chosen by mechanic [Type:Get]
+-Authorization required
+-format of the link: http://161.97.155.244/api/requestmechanic/loadRepairsToBeMade
+-Expected response:
+```
+{
+    "Repairs to be made": [
+        {
+            "Repairkind": "item",
+            "Repairitself": {
+                "_id": "60a524f2184a165a3420278b",
+                "Category": "سينسور",
+                "ItemDesc": "سينسور اكسوجين Nissan Sunny",
+                "Price": 1200,
+                "__v": 0
+            },
+            "RepairNumber": "2"
+        },
+        {
+            "Repairkind": "service",
+            "Repairitself": {
+                "_id": "60a533f6be2f873684fe04e6",
+                "Category": "تغير سينسور",
+                "ServiceDesc": "تغير سينسور الاكسوجين",
+                "ExpectedFare": 250,
+                "__v": 0
+            },
+            "RepairNumber": "1"
+        }
+    ]
+}
+```
+================================================================================================
+* Handling customer response | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/requestmechanic/CustomerResponse
+
+Customer can Approve OR Refuse
+
+1)
+```
+{
+    "customerResponse": "Approve"
+}
+```
+Response : 
+```
+{
+    "msg": "Approved!"
+}
+```
+2)
+```
+{
+    "customerResponse": "Refuse"
+}
+```
+
+Response : 
+```
+{
+    "msg": "Refused!"
+}
+```
+
+* Checking the Mechanic request status | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/requestmechanic/checkstatus
+
+--> If you have no active rides
+```
+{
+    "error": "You dont have any active rides."
+}
+```
+
+If you have active rides. (Every 1 min the Scope is increased by 2 KMs).
+```
+{
+    "Status": "SEARCHING",
+    "Scope": 5
+}
+```
+
+After 10 mins the request search times-out and sends this response.
+```
+{
+    "Status": "TERMINATED",
+    "Reason": "10 mins timeout"
+}
+```
+
+--> If the request is accepted
+```
+{
+    "Status": "ACCEPTED",
+    "Time Passed Since Request Acceptance": 0.039716666666666664,
+    "firstName": "Mohamed",
+    "lastName": "Aly",
+    "phoneNumber": "+201223456789",
+    "MechanicLocation_lat": "31.211179915799473",
+    "MechanicLocation_long": "29.919808104281334"
+}
+```
+
+--> If Mechanic has arrived
+```
+{
+    "Status": "ARRIVED",
+    "Time Passed Since Driver Arrival": 0.0533,
+    "firstName": "Mohamed",
+    "lastName": "Aly",
+    "phoneNumber": "+201223456789",
+    "MechanicLocation_lat": "31.211179915799473",
+    "MechanicLocation_long": "29.919808104281334"
+}
+```
+
+--> Waiting for customer approval
+```
+{
+    "Status": "WAITING_FOR_APPROVAL",
+    "Time Passed Since Service Start ": 0.8258
+}
+```
+--> Customer Response
+```
+{
+    "Status": "CUSTOMER_RESPONSE",
+    "Time Passed Since Service Start ": 3.1228166666666666,
+    "customerResponse": true
+}```
+
+--> If the service has started [ Only if customer approved it ]
+```
+{
+    "Status": "Service STARTED",
+    "Time Passed Since Service Start ": 0.09743333333333333,
+    "firstName": "Mohamed",
+    "lastName": "Aly",
+    "phoneNumber": "+201223456789",
+    "MechanicLocation_lat": "31.211179915799473",
+    "MechanicLocation_long": "29.919808104281334"
+}```
+
+--> If Mechanic finished his service
+```
+{
+    "Status": "COMPLETED",
+    "TripTime": {
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 25.014
+    },
+    "Fare": 1470.01
+}
+```
+
+================================================================================================
+Modifications **
+* Creating a new mechanic request | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/requestmechanic/createrequest
+
+Data required
+```
+{
+    "PickupLocation_Lat": "31.236110220827165",
+    "PickupLocation_Long": "29.948748010875686",
+   "IntialDiagnosis":[
+        {"id":"60edaf26b466820094c06b90",
+        "category":"problem"
+        },
+        {"id":"60edaf46b466820094c06b91",
+        "category":"problem"
+        },
+        {"id":"60a576834fd661310c118030",
+        "category":"service"
+        }
+        ],
+    "Estimated_Time":"5",
+    "Estimated_Fare":"150",
+    "Car_ID":"608a6e994d67bb12486aaa4e"
+}
+```

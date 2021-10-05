@@ -761,3 +761,149 @@ Data required
     "Car_ID":"608a6e994d67bb12486aaa4e"
 }
 ```
+
+# Winch API
+
+================================================================================================
+* Registering Winch Driver | [TYPE: POST] 
+- No authentication Required 
+- format of the link: http://161.97.155.244/api/registeration/winchUser 
+Sample JSON request  (ALL FIELDS REQUIRED)
+```
+{
+    "phoneNumber" : "+201234567895",
+    "fireBaseId" : "ExampleTokenHere"
+}
+```
+
+Verification Same as Customer
+Expected response
+
+-> If a valid phone number verification 
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDg0NzA1ZjhiZWY4YjE4NThiZWMwNmQiLCJ2ZXJpZmllZCI6ZmFsc2UsInVzZXJfdHlwZSI6IndpbmNoRHJpdmVyIiwiaWF0IjoxNjE5MjkyNTk4fQ.3OB-t53K3j6e0KkdcYP3f8pgl3mgyJpXYijEo9dEYfc"
+}
+```
+
+- Payload Data JWT
+```
+{
+  "_id": "6084705f8bef8b1858bec06d",
+  "verified": false,
+  "user_type": "winchDriver",
+  "iat": 1619292598
+}
+```
+
+- If user is already exist & verified :
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDE2MDhjODljNGYwNTQ1NTA4MDkzZTMiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoid2luY2hEcml2ZXIiLCJpYXQiOjE2MTkyOTIyODR9.ZiCdTbBLDn7zXHkNuRGF9E9o4717gMf1D4YDZqXczac",
+    "firstName": "Sara",
+    "lastName": "Ayman",
+    "winchPlates": "123سعص",
+    "governorate": "Alexandria"
+}
+```
+
+- Payload Data JWT
+```
+{
+  "_id": "601608c89c4f0545508093e3",
+  "verified": true,
+  "user_type": "winchDriver",
+  "iat": 1619292284
+}
+```
+ 
+And then you can use the access token in the next POST request to set the first & last name, winchPlates and governorate
+================================================================================================
+================================================================================================
+
+* Updating Driver's data (IS THIS YOU?) | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/winchDriver/me/updateprofile
+
+How to do Authorization? 
+
+Send in the Header :
+
+Key: x-auth-token
+Value: Given Token In The Prev. Step
+
+Key: language 
+Value: ar or en  [Here is an example when value : en]
+
+Sample JSON request (ALL FIELDS REQUIRED)
+```
+{
+    "firstName": "Sara",
+    "lastName": "Ayman",
+    "winchPlates": "123سعص",
+    "governorate": "Alexandria"
+}
+```
+
+Accepts Arabic or English
+Expected response
+
+If data is valid :
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDg0NzA1ZjhiZWY4YjE4NThiZWMwNmQiLCJ2ZXJpZmllZCI6ZmFsc2UsInVzZXJfdHlwZSI6IndpbmNoRHJpdmVyIiwiaWF0IjoxNjE5MjkzMDEyfQ.NtN9W70N-fCixGx_HVgkeSHItsPm4pB-4DPv4V1AxoQ"
+}```
+
+Token Example After Setting up the firstName & lastName & winchPlates & governorate
+Decoded JWT response (the PAYLOAD of JWT will be as follows)  STILL NOT VERIFIED
+```
+{
+  "_id": "6084705f8bef8b1858bec06d",
+  "verified": false,
+  "user_type": "winchDriver",
+  "iat": 1619293012
+}```
+ 
+Sara — 01/31/2021
+And then you can use the access token in the next POST request to upload the images
+================================================================================================
+================================================================================================
+
+* Updating Driver's data (IS THIS YOU?) | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://.    /api/winchDriver/me/UploadImages
+
+How to do Authorization? 
+
+Send in the Header with the 
+
+```Key: x-auth-token
+Value: Given Token In The Prev. Step ```
+
+Expected response
+If data is valid:
+
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDE2MDhjODljNGYwNTQ1NTA4MDkzZTMiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoid2luY2hEcml2ZXIiLCJpYXQiOjE2MTkyOTIyODR9.ZiCdTbBLDn7zXHkNuRGF9E9o4717gMf1D4YDZqXczac"
+}
+```
+
+If file extension is not valid :
+```
+{
+    "error": "File Format Is Incorrect !"
+}
+```
+
+Final Token After Setting Up All The Data
+Decoded JWT response (the PAYLOAD of JWT will be as follows)
+[ FinalAuthToken After Uploading Images ] VERIFIED DATA
+```
+{
+  "_id": "601608c89c4f0545508093e3",
+  "verified": true,
+  "user_type": "winchDriver",
+  "iat": 1619292284
+}
+```

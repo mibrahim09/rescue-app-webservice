@@ -952,3 +952,171 @@ Response in case the driver has already accepted a ride and still have it:
     "requestId": "607ee23a73c4b9353c0fc17f"
 }
 ```
+
+* Driver Response | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/driverMatching/driverResponse
+{
+    "driverResponse": "Accept"
+}
+
+- Response : Get Customer's Information
+
+```
+{
+    "firstName": "haidy",
+    "lastName": "osama",
+    "phoneNumber": "+201011175270",
+    "EstimatedTime": "5",
+    "EstimatedDistance": "150",
+    "EstimatedFare": "150",
+    "CarBrand": "Seat",
+    "CarModel": "Leon",
+    "CarPlates": "فخم2222"
+}
+ 
+```
+* Ending a Ride | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/driverMatching/EndRide
+
+Data required
+
+```json
+{
+    "finalLocation_Lat": "31.541",
+    "finalLocation_Long": "24.157"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+
+```json
+{
+    "STATUS": "COMPLETED",
+    "Fare": 200,
+    "TotalTimeForTrip": {
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 1.717
+    }
+}
+```
+
+* Rating the Customer | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/driverMatching/Rate
+
+Data required
+```json
+{
+    "Stars": "3"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "msg": "Rated Successfully"
+}
+```
+* Driver Live Tracker | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/driverMatching/liveTracker
+
+Data required
+```
+{
+    "Location_Lat": "31.21207",
+    "Location_Long": "29.90909"
+}
+```
+
+Response 
+
+```
+{
+    "Done": "Your Location has been Updated Successfully"
+}```
+
+  Driver Arrival [Type:Post]
+  Authorization Required
+  format of the link: http://161.97.155.244/api/driverMatching/driverArrival
+*Data required 
+{
+    "driverResponse": "Arrived"
+}
+Response : 
+{
+    "msg": "Alright!"
+}
+Response In case of the driver hasn't accepted the ride before:                                                                                                    
+{ "Error": "You Have No Ride!" }
+ 
+Service start [Type:Post]
+Authorization Required
+format of the link: http://161.97.155.244/api/driverMatching/ServiceStart
+
+*Data required 
+
+```
+{
+    "driverResponse": "Service Start"
+}```
+
+Response : 
+```
+{
+    "msg": "Alright!"
+}
+```
+Response In case of the driver hasn't accepted the ride before:                                                                                                    
+
+```
+{ "Error": "You Have No Ride!" }
+```
+
+Response In case of the driver hasn't arrived yet:
+
+```
+{ "Error": "You Have Not Arrived Yet!" }
+```
+
+* Driver Cancellation  | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/driverMatching/DriverCancel
+
+If Driver Is Searching For A Request 
+Response 
+```
+{
+    "Status": "CANCELLED"
+}
+```
+
+If Driver Has Already Accepted The Request 
+Response 
+```
+{
+    "Status": "CANCELLED",
+    "Details": "Request was accepted"
+}
+```
+
+If Driver Has Already Arrived ( from less than 10 mins )
+Response
+```
+{
+    "error": "You Can't Cancel This Request."
+}
+```
+
+
+If Driver Has Already Arrived ( 10 mins ago )
+Response
+```
+{
+    "Status": "CANCELLED",
+    "Details": "Can not find customer!"
+}```

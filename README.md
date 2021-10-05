@@ -270,3 +270,184 @@ Expected Response:
 }
 ```
 ================================================================================================
+
+================================================================================================
+* Creating a new winch request (NOT COMPLETED YET) | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/requestwinch/createrequest
+
+Data required
+```json
+{
+    "DropOffLocation_Lat": "20.21207",
+    "DropOffLocation_Long": "29.90909",
+    "PickupLocation_Lat": "31.236110220827165",
+    "PickupLocation_Long": "29.948748010875686",
+    "Estimated_Time":"5",
+    "Estimated_Distance":"150",
+    "Estimated_Fare":"150",
+    "Car_ID":"6088512e5208e3189800a2ba"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "status": "SEARCHING",
+    "requestId": "602d812619dd6414140f4032"
+}
+```
+
+If you try to request a ride again on the same user with an active ride. 
+```json
+{
+    "error": "This customer has already an active ride.",
+    "status": "SEARCHING",
+    "requestId": "602d812619dd6414140f4032"
+}
+```
+
+If you try to request a ride without rating the previous ride it'll return the following
+
+```json
+{
+    "error": "You need to rate the previous ride before moving to another.",
+    "status": "COMPLETED",
+    "requestId": "6080956b626fc8563c6df11a"
+}```
+
+
+================================================================================================
+
+================================================================================================
+* Checking the winch request status (NOT COMPLETED YET) | [TYPE: GET] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/requestwinch/checkstatus
+
+--> If you have no active rides
+```json
+{
+    "error": "You dont have any active rides."
+}
+```
+
+If you have active rides. (Every 1 min the Scope is increased by 2 KMs).
+```json
+{
+    "Status": "SEARCHING",
+    "Scope": 5
+}
+```
+
+
+After 10 mins the request search times-out and sends this response.
+```json
+{
+    "Status": "TERMINATED",
+    "Reason": "10 mins timeout"
+}
+```
+
+================================================================================================
+
+================================================================================================
+* Rating the Winch driver | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/requestwinch/Rate
+
+Data required
+```json
+{
+    "Stars": "3"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "msg": "Rated Successfully"
+}
+```
+
+================================================================================================
+
+================================================================================================
+* Cancel Request | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/requestwinch/cancelride
+
+- If the request is still searching 
+```{
+    "Status": "CANCELLED"
+}```
+
+- Cancel a request which is already accepted
+```{
+    "Status": "CANCELLED",
+    "Details": "No Fine Applied",
+    "driverBalance": 0,
+    "customerWallet": 0
+}```
+
+- Cancel a request which has been accepted from 10 min.
+```{
+    "Status": "CANCELLED",
+    "driverBalance": 10,
+    "customerWallet": -10
+}```
+ 
+============================================================================= 
+ Check Status (All Cases since acceptance till the end):
+  Request Type: GET
+  Authorization Required
+ format of the link :http://161.97.155.244/api/requestwinch/checkstatus
+
+ If the ride is accepted:
+```{
+    "Status": "ACCEPTED",
+    "Time Passed Since Request Acceptance": 0.2539166666666667,
+    "firstName": "mohamed",
+    "lastName": "ibrahim",
+    "phoneNumber": "+201004125602",
+    "winchPlates": "134سعى",
+    "DriverLocation_lat": "31.21207",
+    "DriverLocation_long": "29.90909"
+}```
+
+If driver has arrived:
+```{
+    "Status": "ARRIVED",
+    "Time Passed Since Driver Arrival": 0.12553333333333333,
+    "firstName": "mohamed",
+    "lastName": "ibrahim",
+    "phoneNumber": "+201004125602",
+    "winchPlates": "134سعى",
+    "DriverLocation_lat": "31.21207",
+    "DriverLocation_long": "29.90909"
+}```
+
+If the service has started:
+```{
+    "Status": "Service STARTED",
+    "Time Passed Since Service Start ": 0.07655,
+    "firstName": "mohamed",
+    "lastName": "ibrahim",
+    "phoneNumber": "+201004125602",
+    "winchPlates": "134سعى",
+    "DriverLocation_lat": "31.21207",
+    "DriverLocation_long": "29.90909"
+}```
+ 
+
+If Ride Is Completed
+```{
+    "Status": "COMPLETED",
+    "winchPlates": "110سعص",
+    "TripTime": {
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 38.522
+    },
+    "Fare": 16.32
+}```

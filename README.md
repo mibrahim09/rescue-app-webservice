@@ -857,13 +857,15 @@ If data is valid :
 
 Token Example After Setting up the firstName & lastName & winchPlates & governorate
 Decoded JWT response (the PAYLOAD of JWT will be as follows)  STILL NOT VERIFIED
+
 ```
 {
   "_id": "6084705f8bef8b1858bec06d",
   "verified": false,
   "user_type": "winchDriver",
   "iat": 1619293012
-}```
+}
+```
  
 And then you can use the access token in the next POST request to upload the images
 ================================================================================================

@@ -908,3 +908,37 @@ Decoded JWT response (the PAYLOAD of JWT will be as follows)
   "iat": 1619292284
 }
 ```
+
+-Winch driver request to get nearest client (Type:Post)
+-Authorization is required 
+-Format of link : http://161.97.155.244/api/driverMatching/getNearestClient                                                                  
+```
+{
+"Location_Lat": "31.231449938355556",
+"Location_Long": "29.942782777717145"
+}```
+ 
+Expected response :                                                                                                                                                               ```
+{
+    "Nearest Ride: Pickup Location": {
+        "lat": "31.236110220827165",
+        "lng": "29.948748010875686"
+    },
+    "Dropoff Location": {
+        "lat": "20.21207",
+        "lng": "29.90909"
+    }
+}```
+
+Response in case of no client requests:                                                                                                                                       
+```
+{
+    "error": "No client requests now"
+}```
+
+Response in case the driver has already accepted a ride and still have it:                                                                             
+```
+{
+    "error": "You already have a ride",
+    "requestId": "607ee23a73c4b9353c0fc17f"
+}```

@@ -916,7 +916,8 @@ Decoded JWT response (the PAYLOAD of JWT will be as follows)
 {
 "Location_Lat": "31.231449938355556",
 "Location_Long": "29.942782777717145"
-}```
+}
+```
  
 Expected response :                                                                                                                                                               ```
 {
@@ -928,17 +929,21 @@ Expected response :                                                             
         "lat": "20.21207",
         "lng": "29.90909"
     }
-}```
+}
+```
 
-Response in case of no client requests:                                                                                                                                       
+Response in case of no client requests:   
+
 ```
 {
     "error": "No client requests now"
-}```
+}
+```
 
 Response in case the driver has already accepted a ride and still have it:                                                                             
 ```
 {
     "error": "You already have a ride",
     "requestId": "607ee23a73c4b9353c0fc17f"
-}```
+}
+```

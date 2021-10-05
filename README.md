@@ -60,6 +60,7 @@ Decoded JWT response (the PAYLOAD of JWT will be as follows)
   
 "user_type" --> To identify the user.
 ```
+
 And then you can use the access token in the next POST request to set the first and last name.
 ================================================================================================
 

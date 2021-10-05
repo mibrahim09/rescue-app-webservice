@@ -1151,14 +1151,16 @@ msg :
 }
 ```
 
-- Payload JWT
+Payload JWT
+
 ```
 {
   "_id": "608a022edef7543f88419772",
   "verified": true,
   "user_type": "mechanic",
   "iat": 1619657465
-}```
+}
+```
 
 
 -> If a valid phone number verification & New User

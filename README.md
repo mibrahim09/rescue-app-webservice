@@ -1741,3 +1741,207 @@ On a valid response STATUS (200) --> It'll return the following.
     "msg": "Rated Successfully"
 }
 ```
+
+* Add new problem for the app itself | [TYPE: POST] 
+- **NO Authorization Required FOR NOW BUT IN THE FUTURE WILL REQUIRE ADMIN AUTHORIZATION**
+- format of the link: http://161.97.155.244/api/info/AddProblem
+- Required fields: Category, Problem
+
+Body should be like this
+
+```json
+{
+    "Category": "Exterior",
+    "Problem": "عدم الاستجابة  لتوجية",
+    "Subproblem": "طارة الدركسيون بتلف علي الفاضي", 
+    "ExpectedFare": "0.0",
+    "AtHome": true,
+    "AtRescue": true
+}
+```
+
+Expected Response:
+
+```json
+{
+    "_id": "60eda625ce7837127092ba8a",
+    "Category": "Exterior",
+    "Problem": "عدم الاستجابة  لتوجية",
+    "Subproblem": "طارة الدركسيون بتلف علي الفاضي",
+    "ExpectedFare": 0,
+    "AtHome": true,
+    "AtRescue": true,
+    "__v": 0
+}
+```
+
+* Loading problems for the app itself (FIRST TIME) | [TYPE: GET] 
+- **NO Authorization Required**
+- format of the link: http://161.97.155.244/api/info/GetAllProblems
+
+Expected response
+
+```json
+[
+    {
+        "_id": "60a369134262f5368455aa54",
+        "Category": "Exterior",
+        "Problem": "عدم الاستجابة  لتوجية",
+        "Subproblem": "صعوبة وتقل في الدركسيون",
+        "ExpectedFare": 0,
+        "__v": 0
+    },
+    {
+        "_id": "60a3691e4262f5368455aa55",
+        "Category": "Exterior",
+        "Problem": "عدم الاستجابة  لتوجية",
+        "Subproblem": "طارة الدركسيون بتلف علي الفاضي",
+        "ExpectedFare": 0,
+        "__v": 0
+    },
+    {
+        "_id": "60a3695cb299754c4419c868",
+        "Category": "Exterior",
+        "Problem": "إطارات",
+        "Subproblem": "انفجار  في احد الإطارات  ويوجد استبن  سليم بالسيارة",
+        "ExpectedFare": 0,
+        "__v": 0
+    },
+    {
+        "_id": "60a369984d78ab4b98dc983b",
+        "Category": "Engine",
+        "Problem": "توقف فجائي لمحرك السيارة",
+        "Subproblem": "نفاذ الوقود",
+        "ExpectedFare": 0,
+        "__v": 0
+    },
+    {
+        "_id": "60a369f7fad68b17c41f6759",
+        "Category": "Engine",
+        "Problem": "محرك السيارة لا يستجيب  لمحاولة إعادة الدوارة",
+        "__v": 0
+    }
+]
+```
+* Add new service for the app itself | [TYPE: POST] 
+- **NO Authorization Required FOR NOW BUT IN THE FUTURE WILL REQUIRE ADMIN AUTHORIZATION**
+- format of the link: http://161.97.155.244/api/info/AddService
+- Required fields: Category, ServiceDesc, ExpectedFare
+
+Body should be like this
+
+```json
+{
+    "Category": "تغير سينسور",
+    "ServiceDesc": "تغير سينسور الاكسوجين",
+    "ExpectedFare": "250.0"
+}
+```
+
+Expected Response:
+
+```json
+{
+    "_id": "60a4d077dd811558c4cd7925",
+    "Category": "تغير سينسور",
+    "ServiceDesc": "تغير سينسور الاكسوجين",
+    "ExpectedFare": 250,
+    "__v": 0
+}
+```
+
+* Loading Services for the app itself | [TYPE: GET] 
+- NO Authorization Required
+- format of the link: http://161.97.155.244/api/info/GetAllServices
+
+Expected response
+```json
+[
+    {
+        "_id": "60a4d077dd811558c4cd7925",
+        "Category": "تغير سينسور",
+        "ServiceDesc": "تغير سينسور الاكسوجين",
+        "ExpectedFare": 250,
+        "__v": 0
+    },
+    {
+        "_id": "60a4d0cedd811558c4cd7926",
+        "Category": "تغير سينسور",
+        "ServiceDesc": "تغير سيسنور الفرامل",
+        "ExpectedFare": 250,
+        "__v": 0
+    },
+    {
+        "_id": "60a4d0f4dd811558c4cd7927",
+        "Category": "فرامل",
+        "ServiceDesc": "تغير تيل BOSCH مقاس 16",
+        "ExpectedFare": 135,
+        "__v": 0
+    },
+    {
+        "_id": "60a4d10edd811558c4cd7928",
+        "Category": "كوتش",
+        "ServiceDesc": "تغير فرده كوتش",
+        "ExpectedFare": 30,
+        "__v": 0
+    }
+]
+```
+
+* Add new item for the app itself | [TYPE: POST] 
+- **NO Authorization Required FOR NOW BUT IN THE FUTURE WILL REQUIRE ADMIN AUTHORIZATION**
+- format of the link: http://161.97.155.244/api/info/AddItem
+- Required fields: Category, ItemDesc, Price
+
+Body should be like this
+
+```json
+{
+    "Category": "سينسور",
+    "ItemDesc": "سينسور اكسوجين Nissan Sunny",
+    "Price": "1200.0"
+}
+```
+
+Expected Response:
+
+```json
+{
+    "_id": "60a4d340c1cd7f41f4ec9488",
+    "Category": "سينسور",
+    "ItemDesc": "سينسور اكسوجين Nissan Sunny",
+    "Price": 1200,
+    "__v": 0
+}
+```
+
+* Loading Services for the app itself | [TYPE: GET] 
+- NO Authorization Required
+- format of the link: http://161.97.155.244/api/info/GetAllItems
+
+Expected response
+
+```json
+[
+    {
+        "_id": "60a4d340c1cd7f41f4ec9488",
+        "Category": "سينسور",
+        "ItemDesc": "سينسور اكسوجين Nissan Sunny",
+        "Price": 1200,
+        "__v": 0
+    },
+    {
+        "_id": "60a4d3a5c1cd7f41f4ec9489",
+        "Category": "بنزين",
+        "ItemDesc": "5 لتر بنزين 92",
+        "Price": 38.75,
+        "__v": 0
+    },
+    {
+        "_id": "60a4d3c9c1cd7f41f4ec948a",
+        "Category": "كوتش",
+        "ItemDesc": "Kumho 16'",
+        "Price": 900,
+        "__v": 0
+    }
+]```

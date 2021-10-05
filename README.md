@@ -407,7 +407,7 @@ Cancel a request which has been accepted from 10 min.
  format of the link :http://161.97.155.244/api/requestwinch/checkstatus
 
  If the ride is accepted:
-```{
+```json{
     "Status": "ACCEPTED",
     "Time Passed Since Request Acceptance": 0.2539166666666667,
     "firstName": "mohamed",

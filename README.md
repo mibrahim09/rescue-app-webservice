@@ -852,7 +852,8 @@ If data is valid :
 ```
 {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDg0NzA1ZjhiZWY4YjE4NThiZWMwNmQiLCJ2ZXJpZmllZCI6ZmFsc2UsInVzZXJfdHlwZSI6IndpbmNoRHJpdmVyIiwiaWF0IjoxNjE5MjkzMDEyfQ.NtN9W70N-fCixGx_HVgkeSHItsPm4pB-4DPv4V1AxoQ"
-}```
+}
+```
 
 Token Example After Setting up the firstName & lastName & winchPlates & governorate
 Decoded JWT response (the PAYLOAD of JWT will be as follows)  STILL NOT VERIFIED

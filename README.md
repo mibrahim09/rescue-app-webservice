@@ -1353,3 +1353,391 @@ Response
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhNjBjMzQxZDY3ODA1YWM5Y2Y5NGQiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoibWVjaGFuaWMiLCJpYXQiOjE2MTk2ODIwNjJ9.FUfm7EXge14edROw16Wd49P1YtDVhj7v7ydKf3Fzi90"
 }
 ```
+
+* Ending a Ride | [TYPE: POST] 
+- **Authorization Required**
+- format of the link: http://161.97.155.244/api/Mechanic/EndRide
+
+Data required
+
+**NOTHING FOR NOW** (I'll be sending check list result here)
+
+On a valid response STATUS (200) --> It'll return the following.
+```json
+{
+    "STATUS": "COMPLETED",
+    "Fare": 200,
+    "TotalTimeForService": {
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 1.717
+    }
+}
+```
+
+* Driver Live Tracker | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/Mechanic/liveTracker
+
+Data required
+```
+{
+    "Location_Lat": "31.21207",
+    "Location_Long": "29.90909"
+}
+```
+
+
+Response 
+```
+{
+    "Done": "Your Location has been Updated Successfully"
+}
+```
+
+* Mechanic Response  | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/Mechanic/MechanicResponse
+```
+{
+    "mechanicResponse": "Accept"
+}
+```
+
+- Response : Get Customer's Information
+
+```
+{
+    "firstName": "haidy",
+    "lastName": "osama",
+    "phoneNumber": "+201011175270",
+    "EstimatedTime": "5",
+    "EstimatedFare": "150"
+}
+```
+
+```
+{
+    "mechanicResponse": "Deny"
+}
+```
+- Response : 
+
+```
+{
+    "msg": "Check For Another Request"
+}
+```
+
+-Mechanic choosing Repairs that the car needs
+-Authorization required
+-format of link : http://161.97.155.244/api/Mechanic/ChooseRepairs
+
+```
+{
+    "Repairsneeded":[
+        {"id":"60a524f2184a165a3420278b",
+        "category":"item",
+        "number":"2"
+        },
+        {"id":"60a533f6be2f873684fe04e6",
+        "category":"service",
+        "number":"1"
+        }
+        ]
+    
+    
+}
+```
+
+Expected Respone:
+
+```
+{
+    "Msg": "Done!"
+}
+```
+ 
+Respone(In case mechanic doesn't have an active request):
+
+```
+{
+    "error": "You dont have any active rides."
+}
+```
+ 
+Respone(In case mechanic hasn't arrived yet):
+
+```
+{
+    "error": "You Have Not Arrived Yet!"
+}
+```
+
+Respone In case one of the ids of services or items sent doesn't exist:
+```
+{
+    "error": "service doesn't exist"
+}
+```
+
+or
+
+```
+{
+    "error": "item doesn't exist"
+}
+```
+
+* Mechanic Cancellation  | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/Mechanic/MechanicCancel
+
+If Mechanic Is Searching For A Request & Didn't Get One Yet 
+Response 
+```
+{
+    "Status": "CANCELLED"
+}
+```
+
+If Mechanic Has Already Accepted The Request 
+Response 
+```
+{
+    "Status": "CANCELLED",
+    "Details": "Request was accepted"
+}
+```
+
+If Mechanic Has Already Arrived ( from less than 10 mins )
+Response
+```
+{
+    "error": "You Can't Cancel This Request."
+
+}
+```
+
+If Mechanic Has Already Arrived ( 10 mins ago )
+Response
+```
+{
+    "Status": "CANCELLED",
+    "Details": "Can not find customer!"
+}
+```
+ 
+-Mechanic request to get nearest client (Type:Post)
+-Authorization is required 
+-Format of link : http://161.97.155.244/api/Mechanic/getNearestClient                                                                  
+
+```
+{
+"Location_Lat": "31.231449938355556",
+"Location_Long": "29.942782777717145"
+}
+```
+
+Expected response :                                                                                                                                                                            
+```
+{
+    "Nearest Ride: Pickup Location": {
+        "lat": "31.236110220827165",
+        "lng": "29.948748010875686"
+    },
+    "Dropoff Location": {
+        "lat": "20.21207",
+        "lng": "29.90909"
+    }
+}
+```
+Response in case of no client requests:                                                                                                                                       
+```
+{
+    "error": "No client requests now"
+}
+```
+Response in case the driver has already accepted a ride and still have it:                                                                             
+```
+{
+    "error": "You already have a ride",
+    "requestId": "607ee23a73c4b9353c0fc17f"
+}
+```
+Mechanic Arrival [Type:Post]
+  Authorization Required
+  format of the link: http://161.97.155.244/api/Mechanic/MechanicArrival
+*Data required 
+```
+{
+    "driverResponse": "Arrived"
+}
+```
+Response : 
+```
+{
+    "msg": "Alright!"
+}
+```
+Response In case of the driver hasn't accepted the ride before:                                                                                                    
+```
+{ "Error": "You Have No Ride!" }
+```
+
+Service start [Type:Post]
+  Authorization Required
+  format of the link: http://161.97.155.244/api/Mechanic/ServiceStart
+*Data required 
+```
+{
+    "driverResponse": "Service Start"
+}
+```
+Response : 
+```
+{
+    "msg": "Alright!"
+}
+```
+Response In case of the driver hasn't accepted the ride before:                                                                                                    
+```
+{ "Error": "You Have No Ride!" }
+```
+
+Response In case of the driver hasn't arrived yet:
+```
+{ "Error": "You Have Not Arrived Yet!" }
+```
+
+* Checking Mechanic Status  | [TYPE: GET] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/Mechanic/checkstatus
+
+--> If Mechanic didn't accept any requests yet
+```
+{
+    "error": "You dont have any active rides."
+}
+```
+ --> When Mechanic accepts the request 
+```
+{
+    "Status": "ACCEPTED",
+     "Time Passed Since Request Acceptance": 0.21223333333333333,
+    "firstName": "Sara",
+    "lastName": "Ayman",
+    "phoneNumber": "+201223456788",
+    "Customer_Location": {
+        "lat": "31.236110220827165",
+        "lng": "29.948748010875686"
+    }
+}
+```
+--> If Mechanic has arrived
+```
+{
+    "Status": "ARRIVED",
+   "Time Passed Since Driver Arrival": 0.06121666666666667,
+    "firstName": "Sara",
+    "lastName": "Ayman",
+    "phoneNumber": "+201223456788"
+}
+```
+--> Waiting for customer approval
+```
+{
+    "Status": "WAITING_FOR_APPROVAL",
+    "Time Passed Since Service Start ": 0.8258
+}
+```
+
+--> Customer Response
+```
+{
+    "Status": "CUSTOMER_RESPONSE",
+    "Time Passed Since Service Start ": 3.1228166666666666,
+    "customerResponse": true
+}
+```
+--> If the service has started
+```
+{
+   "Status": "Service STARTED",
+    "Time Passed Since Service Start ": 0.08386666666666667
+}
+```
+
+--> If Service finished
+```
+{
+    "Status": "COMPLETED",
+    "Fare": 1450
+}
+```
+
+Modifications **
+-Mechanic request to get nearest client (Type:Post)
+-Authorization is required 
+-Format of link : http://161.97.155.244/api/Mechanic/getNearestClient
+
+Data Required
+```
+{
+    "Location_Lat": "31.211179915799473",
+    "Location_Long": "29.919808104281334"
+}
+```
+
+Response 
+```
+{
+    "Nearest Ride: Pickup Location": {
+        "lat": "31.236110220827165",
+        "lng": "29.948748010875686"
+    },
+    "Initial Diagnosis": [
+        {
+            "RequestCategory": "problem",
+            "ProblemCategory": "Exterior",
+            "Problem": "إطارات",
+            "SubProblem": "انفجار  في احد الإطارات  ويوجد استبن  سليم بالسيارة"
+        },
+        {
+            "RequestCategory": "problem",
+            "ProblemCategory": "Engine",
+            "Problem": "توقف فجائي لمحرك السيارة",
+            "SubProblem": "نفاذ الوقود"
+        },
+        {
+            "RequestCategory": "service",
+            "ServiceCategory": "تغير سينسور",
+            "ServiceDesc": "تغير سينسور الاكسوجين",
+            "ServiceFare": 250
+        }
+    ],
+    "CarBrand": "Seat",
+    "CarModel": "Leon",
+    "CarYear": 2014,
+    "CarPlates": "فخم2222"
+}
+```
+
+* Rating the Customer | [TYPE: POST] 
+- Authorization Required
+- format of the link: http://161.97.155.244/api/Mechanic/Rate
+
+Data required
+```
+{
+    "Stars": "3"
+}
+```
+
+On a valid response STATUS (200) --> It'll return the following.
+```
+{
+    "msg": "Rated Successfully"
+}
+```

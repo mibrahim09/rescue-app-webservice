@@ -377,12 +377,15 @@ On a valid response STATUS (200) --> It'll return the following.
 - format of the link: http://161.97.155.244/api/requestwinch/cancelride
 
  If the request is still searching 
-```{
+```json
+{
     "Status": "CANCELLED"
-}```
+}
+```
 
  Cancel a request which is already accepted
-```{
+```json
+{
     "Status": "CANCELLED",
     "Details": "No Fine Applied",
     "driverBalance": 0,
@@ -390,7 +393,8 @@ On a valid response STATUS (200) --> It'll return the following.
 }```
 
 Cancel a request which has been accepted from 10 min.
-```{
+```json
+{
     "Status": "CANCELLED",
     "driverBalance": 10,
     "customerWallet": -10
@@ -415,7 +419,8 @@ Cancel a request which has been accepted from 10 min.
 }```
 
 If driver has arrived:
-```{
+```json
+{
     "Status": "ARRIVED",
     "Time Passed Since Driver Arrival": 0.12553333333333333,
     "firstName": "mohamed",
@@ -427,7 +432,8 @@ If driver has arrived:
 }```
 
 If the service has started:
-```{
+```json
+{
     "Status": "Service STARTED",
     "Time Passed Since Service Start ": 0.07655,
     "firstName": "mohamed",
@@ -440,7 +446,8 @@ If the service has started:
  
 
 If Ride Is Completed
-```{
+```json
+{
     "Status": "COMPLETED",
     "winchPlates": "110سعص",
     "TripTime": {

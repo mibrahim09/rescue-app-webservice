@@ -922,7 +922,9 @@ Decoded JWT response (the PAYLOAD of JWT will be as follows)
 }
 ```
  
-Expected response :                                                                                                                                                               ```
+Expected response :    
+
+```
 {
     "Nearest Ride: Pickup Location": {
         "lat": "31.236110220827165",

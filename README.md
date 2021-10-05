@@ -376,12 +376,12 @@ On a valid response STATUS (200) --> It'll return the following.
 - Authorization Required
 - format of the link: http://161.97.155.244/api/requestwinch/cancelride
 
-- If the request is still searching 
+ If the request is still searching 
 ```{
     "Status": "CANCELLED"
 }```
 
-- Cancel a request which is already accepted
+ Cancel a request which is already accepted
 ```{
     "Status": "CANCELLED",
     "Details": "No Fine Applied",
@@ -389,7 +389,7 @@ On a valid response STATUS (200) --> It'll return the following.
     "customerWallet": 0
 }```
 
-- Cancel a request which has been accepted from 10 min.
+Cancel a request which has been accepted from 10 min.
 ```{
     "Status": "CANCELLED",
     "driverBalance": 10,

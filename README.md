@@ -864,21 +864,22 @@ Decoded JWT response (the PAYLOAD of JWT will be as follows)  STILL NOT VERIFIED
   "iat": 1619293012
 }```
  
-Sara — 01/31/2021
 And then you can use the access token in the next POST request to upload the images
 ================================================================================================
 ================================================================================================
 
 * Updating Driver's data (IS THIS YOU?) | [TYPE: POST] 
 - Authorization Required
-- format of the link: http://.    /api/winchDriver/me/UploadImages
+- format of the link: http://domain.com/api/winchDriver/me/UploadImages
 
 How to do Authorization? 
 
 Send in the Header with the 
 
-```Key: x-auth-token
-Value: Given Token In The Prev. Step ```
+```
+Key: x-auth-token
+Value: Given Token In The Prev. Step
+```
 
 Expected response
 If data is valid:

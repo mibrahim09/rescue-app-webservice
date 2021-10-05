@@ -377,14 +377,14 @@ On a valid response STATUS (200) --> It'll return the following.
 - format of the link: http://161.97.155.244/api/requestwinch/cancelride
 
  If the request is still searching 
-```json
+```
 {
     "Status": "CANCELLED"
 }
 ```
 
  Cancel a request which is already accepted
-```json
+```
 {
     "Status": "CANCELLED",
     "Details": "No Fine Applied",
@@ -393,7 +393,7 @@ On a valid response STATUS (200) --> It'll return the following.
 }```
 
 Cancel a request which has been accepted from 10 min.
-```json
+```
 {
     "Status": "CANCELLED",
     "driverBalance": 10,
@@ -407,7 +407,8 @@ Cancel a request which has been accepted from 10 min.
  format of the link :http://161.97.155.244/api/requestwinch/checkstatus
 
  If the ride is accepted:
-```json{
+```
+{
     "Status": "ACCEPTED",
     "Time Passed Since Request Acceptance": 0.2539166666666667,
     "firstName": "mohamed",
@@ -416,10 +417,11 @@ Cancel a request which has been accepted from 10 min.
     "winchPlates": "134سعى",
     "DriverLocation_lat": "31.21207",
     "DriverLocation_long": "29.90909"
-}```
+}
+```
 
 If driver has arrived:
-```json
+```
 {
     "Status": "ARRIVED",
     "Time Passed Since Driver Arrival": 0.12553333333333333,
@@ -429,10 +431,11 @@ If driver has arrived:
     "winchPlates": "134سعى",
     "DriverLocation_lat": "31.21207",
     "DriverLocation_long": "29.90909"
-}```
+}
+```
 
 If the service has started:
-```json
+```
 {
     "Status": "Service STARTED",
     "Time Passed Since Service Start ": 0.07655,
@@ -442,11 +445,12 @@ If the service has started:
     "winchPlates": "134سعى",
     "DriverLocation_lat": "31.21207",
     "DriverLocation_long": "29.90909"
-}```
+}
+```
  
 
 If Ride Is Completed
-```json
+```
 {
     "Status": "COMPLETED",
     "winchPlates": "110سعص",
@@ -457,4 +461,5 @@ If Ride Is Completed
         "seconds": 38.522
     },
     "Fare": 16.32
-}```
+}
+```

@@ -1115,8 +1115,239 @@ Response
 
 If Driver Has Already Arrived ( 10 mins ago )
 Response
+
 ```
 {
     "Status": "CANCELLED",
     "Details": "Can not find customer!"
+}
+```
+
+# Mechanic API
+
+* Mechanic Registering | [TYPE: POST] 
+- No authentication Required 
+- link :  http://161.97.155.244/api/registeration/mechanicUser
+Sample JSON request  (ALL FIELDS REQUIRED)
+
+```
+{
+    "phoneNumber" : "+201223456787",
+    "fireBaseId" : "ExampleTokenHere"
+}
+```
+ 
+Expected response
+
+-> If a valid phone number verification But User Already Exists
+msg :
+
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhMDIyZWRlZjc1NDNmODg0MTk3NzIiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoibWVjaGFuaWMiLCJpYXQiOjE2MTk2NTc0NjV9.x4EC7LAmyDOsqReCZ4e-5fu09VFD5o3pZWM1nvEdpp4",
+    "firstName": "Mohamed",
+    "lastName": "Aly",
+    "governorate": "Cairo"
+}
+```
+
+- Payload JWT
+```
+{
+  "_id": "608a022edef7543f88419772",
+  "verified": true,
+  "user_type": "mechanic",
+  "iat": 1619657465
 }```
+
+
+-> If a valid phone number verification & New User
+msg:
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhMDNhMGRlZjc1NDNmODg0MTk3NzMiLCJ2ZXJpZmllZCI6ZmFsc2UsInVzZXJfdHlwZSI6Im1lY2hhbmljIiwiaWF0IjoxNjE5NjU3NjMyfQ.WInt29fWMOx_1G6Z6OH-FhSPKlO92E61dXu7lTa1uxU"
+}
+```
+
+- Payload JWT
+```
+{
+  "_id": "608a03a0def7543f88419773",
+  "verified": false,
+  "user_type": "mechanic",
+  "iat": 1619657632
+}
+```
+ 
+Sara — 02/09/2021
+And then you can use the access token in the next POST request to set the first & last name,  and governorate
+================================================================================================
+================================================================================================
+
+* Updating Mechanic's data (IS THIS YOU?) | [TYPE: POST] 
+- Authorization Required
+- format of the link:  http://161.97.155.244/api/mechanic/me/updateprofile
+
+How to do Authorization? 
+
+Send in the Header :
+
+Key: x-auth-token
+Value: Given Token In The Prev. Step
+
+Key: language 
+Value: ar or en  [Here is an example when value : ar]
+
+Sample JSON request (ALL FIELDS REQUIRED)
+```
+{
+    "firstName": "سارة",
+    "lastName": "ايمن",
+    "governorate": "الإسكندرية"
+    
+}
+```
+
+Accepts Arabic or English
+
+Expected response
+
+If data is valid :
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhMDIyZWRlZjc1NDNmODg0MTk3NzIiLCJ2ZXJpZmllZCI6ZmFsc2UsInVzZXJfdHlwZSI6Im1lY2hhbmljIiwiaWF0IjoxNjE5NjU3NDQ3fQ.6HDlMptAD3OrLhSd_YyaiEzzLBMGzCqcwhpCjSPiHUI"
+}
+```
+
+Token Example After Setting firstName & lastName & governorate
+Decoded JWT response (the PAYLOAD of JWT will be as follows) 
+
+```
+{
+  "_id": "608a022edef7543f88419772",
+  "verified": false,
+  "user_type": "mechanic",
+  "iat": 1619657447
+}
+```
+ 
+And then you can use the access token in the next POST request to upload the images
+================================================================================================
+================================================================================================
+
+* Updating Mechanic's data (IS THIS YOU?) | [TYPE: POST] 
+- Authorization Required
+- format of the link:  http://161.97.155.244/api/mechanic/me/UploadImage
+
+How to do Authorization? 
+
+Send in the Header with the 
+
+Key: x-auth-token
+Value: Given Token In The Prev. Step 
+Image
+Expected response
+If data is valid :
+
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhMDIyZWRlZjc1NDNmODg0MTk3NzIiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoibWVjaGFuaWMiLCJpYXQiOjE2MTk2NTc0NTB9.H0bqe2s9J6ml_fkuxLaVKqeFOAEsXVvZdryGDkq_UXg"
+}
+```
+
+If file extension is not valid :
+```
+{
+    "error": "File Format Is Incorrect !"
+}
+```
+
+Final Token 
+Decoded JWT response (the PAYLOAD of JWT will be as follows)
+[ FinalAuthToken After Uploading Mechanic's personalPicture ]
+
+```
+{
+  "_id": "608a022edef7543f88419772",
+  "verified": true,
+  "user_type": "mechanic",
+  "iat": 1619657450
+}
+```
+ 
+And then you can use the access token in the next POST request to set the first & last name,  and governorate
+
+
+* Updating Mechanic's data (IS THIS YOU?) (NOT COMPLETED YET) | [TYPE: POST] 
+- Authorization Required
+- format of the link:  http://161.97.155.244/api/mechanic/me/employment
+
+Send in the Header :
+
+Key: x-auth-token
+Value: Given Token In The Prev. Step
+
+Sample JSON request
+
+```
+{
+    "employee": "false"
+}
+```
+
+Response
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhNjBjMzQxZDY3ODA1YWM5Y2Y5NGQiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoibWVjaGFuaWMiLCJpYXQiOjE2MTk2ODE2MzJ9.qsT-yCdkXfRQn57w_TKh3zKU2ykNVA3mkIAyeqttzHA"
+}
+```
+
+Sample JSON request ( CENTERID REQUIRED ONLY IF EMPLOYEE IS TRUE)
+
+```
+{
+    "employee": "true"
+}
+```
+
+Response
+
+```
+{
+    "error": "\"centerId\" is required"
+}
+```
+
+If center doesn't exist 
+
+```
+{
+    "employee": "true",
+    "centerId": "608a60c341d67805ac9cf94d"
+}
+```
+
+Response
+
+```
+{
+    "error": "Center doesn't exist."
+}
+```
+
+Else If Center exists
+
+```
+{
+    "employee": "true",
+    "centerId": "608a5e74a15c8c36786d2acc"
+}
+```
+
+Response
+
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDhhNjBjMzQxZDY3ODA1YWM5Y2Y5NGQiLCJ2ZXJpZmllZCI6dHJ1ZSwidXNlcl90eXBlIjoibWVjaGFuaWMiLCJpYXQiOjE2MTk2ODIwNjJ9.FUfm7EXge14edROw16Wd49P1YtDVhj7v7ydKf3Fzi90"
+}
+```
